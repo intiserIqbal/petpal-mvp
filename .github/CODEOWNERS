@@ -1,0 +1,13 @@
+# This file designates code ownership for specific paths in the repository.
+# Format: <file or directory> <GitHub username or team>
+
+# Owner for everything in the repo
+* @intiserIqbal
+
+# Optional: Owner for specific folders
+/docs/ @intiserIqbal
+/src/ @intiserIqbal
+
+# Optional: Owner for specific file types
+*.py @intiserIqbal
+*.md @intiserIqbal
