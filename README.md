@@ -48,6 +48,3 @@ Get PetPal’s **full development environment** working and demo-ready:
 
 MIT License © 2025 [Intiser Iqbal](https://github.com/intiserIqbal)
 
-```
-```
-
