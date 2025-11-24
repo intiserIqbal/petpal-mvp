@@ -1,3 +1,4 @@
+// client/src/pages/Auth.tsx
 import { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import {

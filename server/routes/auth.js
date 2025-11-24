@@ -1,8 +1,10 @@
-import express from "express";
-const router = express.Router();
+// server/routes/auth.js
+import { Router } from "express";
+const router = Router();
 
-router.get("/test", (req, res) => {
-  res.json({ ok: true, message: "Auth route working" });
+// Firebase test route
+router.get("/firebase-test", (req, res) => {
+  res.json({ ok: true, message: "Firebase test route working ✅" });
 });
 
 export default router;
