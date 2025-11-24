@@ -1,12 +1,8 @@
-import { Router } from "express";
-const router = Router();
+import express from "express";
+const router = express.Router();
 
-// Placeholder pets routes
-router.get("/", (req, res) => {
-  res.json([
-    { id: 1, name: "Buddy", type: "Dog" },
-    { id: 2, name: "Mittens", type: "Cat" }
-  ]);
+router.get("/test", (req, res) => {
+  res.json({ ok: true, message: "Pets route working" });
 });
 
 export default router;

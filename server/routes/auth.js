@@ -1,13 +1,8 @@
-import { Router } from "express";
-const router = Router();
+import express from "express";
+const router = express.Router();
 
-// Placeholder auth routes
-router.get("/", (req, res) => {
-  res.json({ message: "Auth route placeholder" });
-});
-
-router.post("/login", (req, res) => {
-  res.json({ message: "Login route placeholder" });
+router.get("/test", (req, res) => {
+  res.json({ ok: true, message: "Auth route working" });
 });
 
 export default router;

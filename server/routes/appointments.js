@@ -1,9 +1,8 @@
-import { Router } from "express";
-const router = Router();
+import express from "express";
+const router = express.Router();
 
-// Placeholder appointments routes
-router.get("/", (req, res) => {
-  res.json({ message: "Appointments route placeholder" });
+router.get("/test", (req, res) => {
+  res.json({ ok: true, message: "Appointments route working" });
 });
 
 export default router;
