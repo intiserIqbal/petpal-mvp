@@ -1,14 +1,21 @@
-//client/src/pages/Home.tsx
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { pingServer } from "../api";
 
 export default function Home() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    pingServer()
-      .then((res) => setMessage(res.message))
-      .catch(() => setMessage("Backend unreachable ❌"));
+    async function fetchMessage() {
+      try {
+        const res = await pingServer();
+        setMessage(res.message);
+      } catch (error) {
+        console.error(error);
+        setMessage("Backend unreachable ❌");
+      }
+    }
+    fetchMessage();
   }, []);
 
   return (
@@ -16,9 +23,12 @@ export default function Home() {
       <h1 className="text-3xl mb-4">PetPal Frontend</h1>
       <p className="text-lg text-gray-700">{message}</p>
 
-      <a href="/auth" className="text-blue-600 underline block mt-4">
+      <Link
+        to="/auth"
+        className="text-blue-600 underline block mt-4"
+      >
         Go to Auth Page →
-      </a>
+      </Link>
     </div>
   );
 }
