@@ -7,6 +7,7 @@ import AdoptStart from "./pages/Adoptstart.tsx";
 import AdoptAddress from "./pages/Adoptaddress.tsx";
 import Adopthome from "./pages/Adopthome.tsx";
 import Adoptconfirm from "./pages/Adoptconfirm.tsx";
+import AboutUs from "./pages/Aboutus.tsx";
 
 // Layout component for shared UI
 function Layout() {
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="adopt" element={<AdoptStart />} /> {/* ⭐ NEW ROUTE */}
         <Route path="adopt/home" element={<Adopthome/>} />
         <Route path="adopt/confirm" element={<Adoptconfirm/>} />
+        <Route path="about" element={<AboutUs/>} />
 
         <Route path="*" element={<NotFound />} /> {/* Catch-all */}
       </Route>
