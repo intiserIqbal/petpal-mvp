@@ -8,6 +8,9 @@ import AdoptAddress from "./pages/Adoptaddress.tsx";
 import Adopthome from "./pages/Adopthome.tsx";
 import Adoptconfirm from "./pages/Adoptconfirm.tsx";
 import AboutUs from "./pages/Aboutus.tsx";
+import Rehomestart from "./pages/Rehome/RehomeStart.tsx";
+import Rehomedashboard from "./pages/Rehome/Rehomedashboard.tsx";
+import Rehomemsg from "./pages/Rehome/Rehomemsg.tsx";
 
 // Layout component for shared UI
 function Layout() {
@@ -41,6 +44,10 @@ export default function App() {
         <Route path="adopt/home" element={<Adopthome/>} />
         <Route path="adopt/confirm" element={<Adoptconfirm/>} />
         <Route path="about" element={<AboutUs/>} />
+        <Route path="rehome" element={<Rehomestart/>} />
+        <Route path="rehome/dashboard" element={<Rehomedashboard/>} />
+        <Route path="rehome/notification" element={<Rehomemsg/>} />
+
 
         <Route path="*" element={<NotFound />} /> {/* Catch-all */}
       </Route>

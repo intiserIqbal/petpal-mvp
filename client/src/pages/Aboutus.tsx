@@ -30,7 +30,7 @@ export default function AboutUs() {
         <img
           src={images[index]}
           alt="Carousel"
-          className="w-[1000px] h-[500px] object-cover rounded-b-xl transition-all duration-500 mx-auto"
+          className="w-[1000px] h-[500px] object-cover rounded-xl transition-all duration-500 mx-auto"
         />
 
         {/* Left Button */}
