@@ -9,46 +9,57 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.js";
 import petRoutes from "./routes/pets.js";
 import appointmentRoutes from "./routes/appointments.js";
+import { connectDB } from "./db/connect.js";
 
+// ---------------------------
+// Load environment variables
+// Must happen before using process.env
+// ---------------------------
 dotenv.config();
 
-// ✅ Initialize app first
+// ---------------------------
+// Connect to MongoDB
+// ---------------------------
+connectDB();
+
+// ---------------------------
+// Initialize app
+// ---------------------------
 const app = express();
 
 // ---------------------------
-// 🌐 Security & Global Middleware
+// Security & middleware
 // ---------------------------
-app.use(helmet());                   // adds secure HTTP headers
-app.use(morgan("dev"));              // logs all requests
-app.use(express.json());             // parses JSON body
+app.use(helmet());
+app.use(morgan("dev"));
+app.use(express.json());
 
-// Cross-origin config (Vite frontend)
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // ---------------------------
-// 📌 Register Routes
+// Routes
 // ---------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
 app.use("/api/appointments", appointmentRoutes);
 
-// ---------------------------
-// 🧪 Test Route
-// ---------------------------
+// Test route
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, message: "PetPal API is running 🎉" });
 });
 
 // ---------------------------
-// ❗ Error Handler (last)
+// Error handler (last)
 // ---------------------------
 app.use(errorHandler);
 
 // ---------------------------
-// 🚀 Start Server
+// Start server
 // ---------------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
