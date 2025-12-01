@@ -1,36 +1,27 @@
 import { Routes, Route, Outlet } from "react-router-dom";
-
-
-import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Auth from "./pages/Auth";
+import Navbar from "./components/Navbar"; 
 import Footer from "./components/Footer";
+import AdoptStart from "./pages/Adoptstart.tsx";
+import AdoptAddress from "./pages/Adoptaddress.tsx";
+import Adopthome from "./pages/Adopthome.tsx";
+import Adoptconfirm from "./pages/Adoptconfirm.tsx";
 
-import AdoptStart from "./pages/Adoptstart";
-import AdoptAddress from "./pages/Adoptaddress";
-import Adopthome from "./pages/Adopthome";
-import Adoptconfirm from "./pages/Adoptconfirm";
-
-import AboutUs from "./pages/Aboutus";
-
-import Rehomestart from "./pages/Rehome/Rehomestart";
-import Rehomedashboard from "./pages/Rehome/Rehomedashboard";
-import Rehomemsg from "./pages/Rehome/Rehomemsg";
-
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
-
-// Layout Component
+// Layout component for shared UI
 function Layout() {
   return (
     <>
-      <Navbar />
-      <div className="min-h-screen">
-        <Outlet />
+      <Navbar/>
+      <div>
+      <Outlet /> {/* Renders the matched child route */}
       </div>
-      <Footer />
+      <Footer/>
     </>
   );
 }
 
+// 404 Page Component
 function NotFound() {
   return <h2>404 - Page Not Found</h2>;
 }
@@ -40,28 +31,18 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
 
-        {/* Public */}
-        
-        <Route path="about" element={<AboutUs />} />
+        <Route index element={<Home />} />      {/* "/" */}
 
-        {/* Auth */}
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-
-        {/* Adopt */}
-        <Route path="adopt" element={<AdoptStart />} />
+        <Route path="auth" element={<Auth />} />  {/* "/auth" */}
         <Route path="adopt/address" element={<AdoptAddress />} />
-        <Route path="adopt/home" element={<Adopthome />} />
-        <Route path="adopt/confirm" element={<Adoptconfirm />} />
 
-        {/* Rehome */}
-        <Route path="rehome" element={<Rehomestart />} />
-        <Route path="rehome/dashboard" element={<Rehomedashboard />} />
-        <Route path="rehome/notification" element={<Rehomemsg />} />
+        <Route path="adopt" element={<AdoptStart />} /> {/* ⭐ NEW ROUTE */}
+        <Route path="adopt/home" element={<Adopthome/>} />
+        <Route path="adopt/confirm" element={<Adoptconfirm/>} />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<NotFound />} /> {/* Catch-all */}
       </Route>
     </Routes>
   );
 }
+
