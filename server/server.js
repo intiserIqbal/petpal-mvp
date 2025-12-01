@@ -8,12 +8,12 @@ import dotenv from "dotenv";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.js";
 import petRoutes from "./routes/pets.js";
-import appointmentRoutes from "./routes/appointments.js";
+import reviewRoutes from "./routes/reviews.js";
+import sentimentRoutes from "./routes/sentiment.js";
 import { connectDB } from "./db/connect.js";
 
 // ---------------------------
 // Load environment variables
-// Must happen before using process.env
 // ---------------------------
 dotenv.config();
 
@@ -46,15 +46,19 @@ app.use(
 // ---------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
-app.use("/api/appointments", appointmentRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/analyze-sentiment", sentimentRoutes);
 
-// Test route
+// Remove unused appointments route
+// app.use("/api/appointments", appointmentRoutes); // DELETE THIS
+
+// Ping route
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, message: "PetPal API is running 🎉" });
 });
 
 // ---------------------------
-// Error handler (last)
+// Error handler (must be last)
 // ---------------------------
 app.use(errorHandler);
 
