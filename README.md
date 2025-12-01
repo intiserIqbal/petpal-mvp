@@ -9,20 +9,20 @@
 ---
 
 ### 🚀 Overview
-**PetPal** is a MERN + Firebase-based pet adoption and care platform.  
-It connects adopters, pet owners, and veterinarians through listings, appointment scheduling, and AI-assisted pet care chat.
+**PetPal** is a MERN + JWT-based pet adoption platform.  
+It connects adopters and pet owners through listings, search filters, sentiment analysis, and review systems.
 
-> 🧩 Currently in **Sprint 1 – Practical Setup & Foundation** (Nov 11 → Nov 20)
+> 🧩 Currently in **Sprint 2 – Core Features & Cross-Platform Readiness** (Dec 1 → Dec 8)
 
 ---
 
-### 🎯 Sprint 1 Goal
-Get PetPal’s **full development environment** working and demo-ready:
-- Firebase Authentication (email/password)
-- MongoDB Atlas connection
-- Express backend scaffold (API 5000)
-- React frontend linked to backend
-- Team workflow setup (GitHub + Discord)
+### 🎯 Sprint 2 Goal
+Build PetPal's core product features and ensure cross‑platform readiness:
+- Pet Listings CRUD with Cloudinary image upload
+- Search & filter functionality (species, location, text)
+- HuggingFace sentiment analysis integration
+- Review system (text‑only, moderated)
+- Expo mobile adaptation for iOS + Android
 
 ---
 
@@ -36,15 +36,14 @@ Get PetPal’s **full development environment** working and demo-ready:
 
 ---
 
-### 🧾 Sprint 1 Deliverables (by Nov 20)
+### 🧾 Sprint 2 Deliverables (by Dec 8)
 
-✅ Firebase login/signup demo
-✅ MongoDB connection verified
-✅ Express API test route running
-✅ React ↔ API integration
-✅ Team workflow proof (GitHub + Discord)
+✅ Pet Listings CRUD (backend + frontend)
+✅ Search & Filters (frontend + backend)
+✅ Sentiment analysis integration (backend)
+✅ Review system (backend + frontend)
+✅ Expo mobile adaptation (frontend/mobile)
 
 ### 📜 License
 
 MIT License © 2025 [Intiser Iqbal](https://github.com/intiserIqbal)
-
