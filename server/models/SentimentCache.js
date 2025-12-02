@@ -1,7 +1,7 @@
 // server/models/SentimentCache.js
 // Stores cached sentiment results to reduce HuggingFace API calls (free tier safe).
 
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const SentimentCacheSchema = new mongoose.Schema({
   textHash: { type: String, required: true, unique: true },
@@ -10,4 +10,5 @@ const SentimentCacheSchema = new mongoose.Schema({
   // expires: auto-delete after 24 hours (MongoDB TTL index)
 });
 
-module.exports = mongoose.model('SentimentCache', SentimentCacheSchema);
+// ✅ ESM default export
+export default mongoose.model("SentimentCache", SentimentCacheSchema);

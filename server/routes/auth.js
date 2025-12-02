@@ -3,7 +3,7 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import { validate } from "../middleware/validate.js";
+import validate from "../middleware/validate.js";   // <-- FIXED: default import
 import { z } from "zod";
 
 const router = express.Router();
@@ -26,14 +26,15 @@ const loginSchema = z.object({
 // POST /api/auth/register
 // ----------------------
 router.post("/register", validate(registerSchema), async (req, res) => {
-  const { name, email, password } = req.validatedData;
+  const { name, email, password } = req.body;   // <-- use req.body (already validated)
 
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser)
+    if (existingUser) {
       return res
         .status(400)
         .json({ success: false, message: "Email already registered" });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
@@ -59,20 +60,22 @@ router.post("/register", validate(registerSchema), async (req, res) => {
 // POST /api/auth/login
 // ----------------------
 router.post("/login", validate(loginSchema), async (req, res) => {
-  const { email, password } = req.validatedData;
+  const { email, password } = req.body;   // <-- use req.body (already validated)
 
   try {
     const user = await User.findOne({ email });
-    if (!user)
+    if (!user) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch)
+    if (!isMatch) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
+    }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",

@@ -8,8 +8,8 @@ import dotenv from "dotenv";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.js";
 import petRoutes from "./routes/pets.js";
-import reviewRoutes from "./routes/reviews.js";
-import sentimentRoutes from "./routes/sentiment.js";
+import reviewRoutes from "./routes/review.js";        // ✅ correct file name
+import sentimentRoutes from "./routes/sentiment.js";  // ✅ ESM import
 import { connectDB } from "./db/connect.js";
 
 // ---------------------------
@@ -46,13 +46,13 @@ app.use(
 // ---------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/analyze-sentiment", sentimentRoutes);
+app.use("/api/reviews", reviewRoutes);                     // 🟢 FIXED
+app.use("/api/analyze-sentiment", sentimentRoutes);        // 🟢 FIXED
 
-// Remove unused appointments route
-// app.use("/api/appointments", appointmentRoutes); // DELETE THIS
+// appointments route removed (unused)
+// app.use("/api/appointments", appointmentRoutes);
 
-// Ping route
+// Test Ping
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, message: "PetPal API is running 🎉" });
 });

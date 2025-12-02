@@ -1,71 +1,32 @@
 // server/routes/pets.js
-// Full CRUD for Pet listings with search, filters, pagination,
-// owner authorization, and sentiment integration hook.
+import express from "express";
+import Pet from "../models/Pet.js";
+import { protect } from "../middleware/auth.js";
+import validate from "../middleware/validate.js";
+import { PetCreateSchema, PetUpdateSchema, PetSearchSchema } from "../validation/petSchemas.js";
 
-const express = require('express');
+import { validateCloudinaryUrl, extractPublicId, deleteImage } from "../utils/cloudinary.js";
+
 const router = express.Router();
 
-const Pet = require('../models/Pet');
-const { protect } = require('../middleware/auth');
-const validate = require('../middleware/validate');
-const { PetCreateSchema, PetUpdateSchema, PetSearchSchema } = require('../validation/petSchemas');
-
-// ------------------------------
-// Utils (Cloudinary + Sentiment)
-// ------------------------------
-
-// Placeholder Cloudinary upload handler.
-// You can replace with actual implementation later.
-// For now accept array of URLs in req.body.images.
-async function handleImagesUpload(images = []) {
-  // Expected: [{ url: "...", public_id: "..." }, ...]
-  // In the future, implement Cloudinary uploads here.
-  if (!Array.isArray(images)) return [];
-  return images.map(img => ({
-    url: img.url || img,
-    public_id: img.public_id || null,
-  }));
-}
-
-// Call sentiment endpoint internally
-async function analyzeSentiment(serverRequest, text) {
-  try {
-    const response = await fetch(`${serverRequest.protocol}://${serverRequest.get('host')}/api/analyze-sentiment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: serverRequest.headers.authorization },
-      body: JSON.stringify({ text }),
-    });
-    return await response.json();
-  } catch (err) {
-    console.error('Sentiment analysis failed:', err.message);
-    return null; // fail silently
+// Helper: sanitize images array (incoming are expected to be URLs from client-side Cloudinary upload)
+function sanitizeImageUrls(imageUrls = []) {
+  if (!Array.isArray(imageUrls)) return [];
+  const out = [];
+  for (const url of imageUrls) {
+    if (typeof url !== "string") continue;
+    if (!validateCloudinaryUrl(url)) continue;
+    const public_id = extractPublicId(url);
+    out.push({ url, public_id });
   }
-}
-
-// ------------------------------
-// Validators (Simple for now)
-// Replace with zod schemas in next step
-// ------------------------------
-
-function validatePetPayload(body) {
-  const errors = [];
-
-  if (!body.name) errors.push("Name is required.");
-  if (!body.species) errors.push("Species is required.");
-  if (!body.description) errors.push("Description is required.");
-
-  if (errors.length > 0) return { valid: false, errors };
-  return { valid: true };
+  return out;
 }
 
 // ------------------------------
 // POST /api/pets (Create listing)
 // ------------------------------
-router.post('/', protect, validate(PetCreateSchema), async (req, res) => {
+router.post("/", protect, validate(PetCreateSchema), async (req, res) => {
   try {
-    const { valid, errors } = validatePetPayload(req.body);
-    if (!valid) return res.status(400).json({ success: false, errors });
-
     const {
       name,
       species,
@@ -74,13 +35,11 @@ router.post('/', protect, validate(PetCreateSchema), async (req, res) => {
       sex,
       description,
       location,
-      images
+      images: incomingImages,
     } = req.body;
 
-    // Upload images or accept URLs directly
-    const uploadedImages = await handleImagesUpload(images);
+    const images = sanitizeImageUrls(incomingImages);
 
-    // Create base pet
     const pet = new Pet({
       owner: req.user.id,
       name,
@@ -90,45 +49,47 @@ router.post('/', protect, validate(PetCreateSchema), async (req, res) => {
       sex,
       description,
       location,
-      images: uploadedImages,
+      images,
     });
 
-    // Sentiment analysis (optional)
-    if (description) {
-      const sentiment = await analyzeSentiment(req, description);
-      if (sentiment && sentiment[0] && sentiment[0][0]) {
-        const result = sentiment[0][0];
-        pet.sentiment = {
-          label: result.label,
-          score: result.score,
-          model: "distilbert-base-uncased-finetuned-sst-2-english",
-          analyzedAt: new Date(),
-        };
+    // Optionally run sentiment analysis (if you want to keep the internal call as before)
+    // Note: keep it non-blocking/fail-safe
+    try {
+      if (description && description.trim().length > 0) {
+        const response = await fetch(`${req.protocol}://${req.get("host")}/api/analyze-sentiment`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: req.headers.authorization,
+          },
+          body: JSON.stringify({ text: description }),
+        });
+        if (response.ok) {
+          const json = await response.json();
+          if (json?.result && Array.isArray(json.result) && json.result[0] && json.result[0][0]) {
+            const r = json.result[0][0];
+            pet.sentiment = { label: r.label, score: r.score, model: "distilbert-base-uncased-finetuned-sst-2-english", analyzedAt: new Date() };
+          }
+        }
       }
+    } catch (err) {
+      console.warn("Sentiment call failed (non-blocking):", err.message || err);
     }
 
     const saved = await pet.save();
     return res.status(201).json({ success: true, pet: saved });
-
   } catch (err) {
     console.error("POST /api/pets error:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
 
 // ------------------------------
 // GET /api/pets (List + Search)
 // ------------------------------
-router.get('/', validate(PetSearchSchema, "query"), async (req, res) => {
+router.get("/", validate(PetSearchSchema, "query"), async (req, res) => {
   try {
-    const {
-      q,
-      species,
-      city,
-      page = 1,
-      limit = 10,
-    } = req.query;
-
+    const { q, species, city, page = 1, limit = 10 } = req.query;
     const result = await Pet.searchAndPaginate({
       q,
       species,
@@ -136,103 +97,124 @@ router.get('/', validate(PetSearchSchema, "query"), async (req, res) => {
       page: Number(page),
       limit: Number(limit),
     });
-
-    res.json({
-      success: true,
-      ...result,
-    });
-
+    return res.json({ success: true, ...result });
   } catch (err) {
     console.error("GET /api/pets:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
 
 // ------------------------------
 // GET /api/pets/:id (Detail)
 // ------------------------------
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
-    const pet = await Pet.findById(req.params.id).populate('owner', 'name email');
-
-    if (!pet) {
-      return res.status(404).json({ success: false, message: "Pet not found" });
-    }
-
-    res.json({ success: true, pet });
-
+    const pet = await Pet.findById(req.params.id).populate("owner", "name email");
+    if (!pet) return res.status(404).json({ success: false, message: "Pet not found" });
+    return res.json({ success: true, pet });
   } catch (err) {
     console.error("GET /api/pets/:id:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
 
 // ------------------------------
 // PUT /api/pets/:id (Update)
 // ------------------------------
-router.put('/:id', protect, validate(PetUpdateSchema), async (req, res) => {
+router.put("/:id", protect, validate(PetUpdateSchema), async (req, res) => {
   try {
     let pet = await Pet.findById(req.params.id);
     if (!pet) return res.status(404).json({ success: false, message: "Pet not found" });
 
-    // Check ownership
+    // ownership check
     if (pet.owner.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    const updates = req.body;
-
-    // If images updated, handle upload or direct URLs
-    if (updates.images) {
-      updates.images = await handleImagesUpload(updates.images);
+    // If client sends new images (array of Cloudinary URLs) then:
+    if (req.body.images && Array.isArray(req.body.images)) {
+      // Delete previously stored cloudinary images (if any have public_id)
+      if (Array.isArray(pet.images) && pet.images.length > 0) {
+        for (const img of pet.images) {
+          if (img.public_id) {
+            // attempt deletion but don't block on failure
+            await deleteImage(img.public_id).catch((e) => {
+              console.warn("Failed deleting cloud image:", e);
+            });
+          }
+        }
+      }
+      // sanitize and set new images
+      pet.images = sanitizeImageUrls(req.body.images);
     }
 
-    // If description changed → re-run sentiment
-    if (updates.description) {
-      const sentiment = await analyzeSentiment(req, updates.description);
-      if (sentiment && sentiment[0] && sentiment[0][0]) {
-        const result = sentiment[0][0];
-        updates.sentiment = {
-          label: result.label,
-          score: result.score,
-          model: "distilbert-base-uncased-finetuned-sst-2-english",
-          analyzedAt: new Date(),
-        };
+    // Apply other updates (safe fields)
+    const allowed = ["name", "species", "breed", "age", "sex", "description", "location"];
+    for (const k of allowed) {
+      if (k in req.body) pet[k] = req.body[k];
+    }
+
+    // If description changed then re-run sentiment (non-blocking if fails)
+    if (req.body.description) {
+      try {
+        const response = await fetch(`${req.protocol}://${req.get("host")}/api/analyze-sentiment`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: req.headers.authorization,
+          },
+          body: JSON.stringify({ text: req.body.description }),
+        });
+        if (response.ok) {
+          const json = await response.json();
+          if (json?.result && json.result[0] && json.result[0][0]) {
+            const r = json.result[0][0];
+            pet.sentiment = { label: r.label, score: r.score, model: "distilbert-base-uncased-finetuned-sst-2-english", analyzedAt: new Date() };
+          }
+        }
+      } catch (err) {
+        console.warn("Re-sentiment failed (non-blocking):", err.message || err);
       }
     }
 
-    pet = await Pet.findByIdAndUpdate(req.params.id, updates, { new: true });
-    res.json({ success: true, pet });
-
+    const updated = await pet.save();
+    return res.json({ success: true, pet: updated });
   } catch (err) {
-    console.error("PUT /api/pets/:id:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    console.error("PUT /api/pets/:id error:", err);
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
 
 // ------------------------------
 // DELETE /api/pets/:id (Delete)
 // ------------------------------
-router.delete('/:id', protect, async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
   try {
     const pet = await Pet.findById(req.params.id);
     if (!pet) return res.status(404).json({ success: false, message: "Pet not found" });
 
-    // Check ownership
+    // ownership check
     if (pet.owner.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    // Optional: Clean up Cloudinary images using public_id
-    // TODO: implement later
+    // delete cloudinary images
+    if (Array.isArray(pet.images) && pet.images.length > 0) {
+      for (const img of pet.images) {
+        if (img.public_id) {
+          await deleteImage(img.public_id).catch((e) => {
+            console.warn("Failed deleting cloud image:", e);
+          });
+        }
+      }
+    }
 
     await pet.deleteOne();
-    res.json({ success: true, message: "Pet deleted" });
-
+    return res.json({ success: true, message: "Pet deleted" });
   } catch (err) {
-    console.error("DELETE /api/pets/:id:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    console.error("DELETE /api/pets/:id error:", err);
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
 
-module.exports = router;
+export default router;

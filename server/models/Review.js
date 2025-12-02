@@ -1,18 +1,18 @@
 // server/models/Review.js
 // Review model for PetPal
 
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const ReviewSchema = new mongoose.Schema({
   pet: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Pet',
+    ref: "Pet",
     required: true,
     index: true,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
     index: true,
   },
@@ -38,9 +38,9 @@ const ReviewSchema = new mongoose.Schema({
 
   // Auto-moderation flag (true = needs moderation / possibly abusive)
   flagged: { type: Boolean, default: false },
-
 }, {
   timestamps: true,
 });
 
-module.exports = mongoose.model('Review', ReviewSchema);
+// ✅ ESM default export
+export default mongoose.model("Review", ReviewSchema);
