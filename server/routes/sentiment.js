@@ -1,12 +1,12 @@
 // server/routes/sentiment.js
 // HuggingFace sentiment analysis endpoint with rate limiting and caching.
 
-const express = require('express');
-const crypto = require('crypto');
-const router = express.Router();
+import express from "express";
+import crypto from "crypto";
+import SentimentCache from "../models/SentimentCache.js";
+import { protect } from "../middleware/auth.js";
 
-const SentimentCache = require('../models/SentimentCache');
-const { protect } = require('../middleware/auth');
+const router = express.Router();
 
 // ------------------------
 // Rate limiting (free tier)
@@ -18,13 +18,13 @@ const HF_INTERVAL = 1200; // 1.2 seconds between calls (safe)
 // Hash helper for caching
 // ------------------------
 function hashText(text) {
-  return crypto.createHash('sha256').update(text).digest('hex');
+  return crypto.createHash("sha256").update(text).digest("hex");
 }
 
 // ------------------------
 // POST /api/analyze-sentiment
 // ------------------------
-router.post('/', protect, async (req, res) => {
+router.post("/", protect, async (req, res) => {
   try {
     const { text } = req.body;
 
@@ -45,7 +45,7 @@ router.post('/', protect, async (req, res) => {
     if (now - lastCall < HF_INTERVAL) {
       return res.status(429).json({
         success: false,
-        message: "Rate limit: Please wait before sending another sentiment request."
+        message: "Rate limit: Please wait before sending another sentiment request.",
       });
     }
     lastCall = now;
@@ -74,17 +74,13 @@ router.post('/', protect, async (req, res) => {
     const data = await hfResponse.json(); // expected: [[{label, score}]]
 
     // 4. Save result in cache
-    await SentimentCache.create({
-      textHash,
-      result: data,
-    });
+    await SentimentCache.create({ textHash, result: data });
 
     res.json({ success: true, source: "huggingface", result: data });
-
   } catch (err) {
     console.error("Sentiment route error:", err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,7 +1,7 @@
 // server/validation/petSchemas.js
 // Zod validation schemas for creating/updating pets & searching.
 
-const { z } = require("zod");
+import { z } from "zod";
 
 const locationSchema = z.object({
   city: z.string().max(100).optional(),
@@ -15,7 +15,7 @@ const imageItemSchema = z.object({
 }).or(z.string().url());  // allow simple URL strings too
 
 // ---------- CREATE PET ----------
-const PetCreateSchema = z.object({
+export const PetCreateSchema = z.object({
   name: z.string().min(1, "Name required").max(120),
   species: z.string().min(1, "Species required").max(60),
   breed: z.string().max(80).optional(),
@@ -27,19 +27,13 @@ const PetCreateSchema = z.object({
 });
 
 // ---------- UPDATE PET ----------
-const PetUpdateSchema = PetCreateSchema.partial();
+export const PetUpdateSchema = PetCreateSchema.partial();
 
 // ---------- SEARCH QUERY ----------
-const PetSearchSchema = z.object({
+export const PetSearchSchema = z.object({
   q: z.string().optional(),
   species: z.string().optional(),
   city: z.string().optional(),
   page: z.string().optional(),
   limit: z.string().optional(),
 });
-
-module.exports = {
-  PetCreateSchema,
-  PetUpdateSchema,
-  PetSearchSchema
-};
