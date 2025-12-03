@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PetPal Backend Tester</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    h2 { margin-top: 30px; }
+    input, textarea { width: 250px; padding: 6px; margin: 4px 0; }
+    button { padding: 6px 12px; margin-top: 6px; }
+    .box { border: 1px solid #ccc; padding: 10px; margin: 15px 0; }
+    pre { background: #f8f8f8; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🐾 PetPal Backend Tester</h1>
+
+  <!-- Auth -->
+  <div class="box">
+    <h2>Register User</h2>
+    <button onclick="register()">Register Demo User</button>
+
+    <h2>Login</h2>
+    <button onclick="login()">Login</button>
+    <pre id="token"></pre>
+  </div>
+
+  <!-- Image Upload -->
+  <div class="box">
+    <h2>Upload Image to Cloudinary</h2>
+    <input type="file" id="imgInput" />
+    <button onclick="uploadImage()">Upload</button>
+    <pre id="imgUrl"></pre>
+    <button onclick="verifyImage()">Verify Upload (backend)</button>
+    <pre id="verify"></pre>
+  </div>
+
+  <!-- Create Pet -->
+  <div class="box">
+    <h2>Create Pet</h2>
+    <input id="petName" placeholder="Pet name" /><br>
+    <textarea id="petDesc" placeholder="Description"></textarea><br>
+    <button onclick="createPet()">Create Pet</button>
+    <pre id="createPetRes"></pre>
+  </div>
+
+  <!-- List Pets -->
+  <div class="box">
+    <h2>List Pets</h2>
+    <button onclick="listPets()">Load Pets</button>
+    <pre id="pets"></pre>
+  </div>
+
+  <!-- Update/Delete Pet -->
+  <div class="box">
+    <h2>Modify Pet</h2>
+    <input id="petId" placeholder="Pet ID" /><br>
+    <button onclick="updatePet()">Update Name to 'Updated Pet'</button>
+    <button onclick="deletePet()">Delete</button>
+    <pre id="modifyRes"></pre>
+  </div>
+
+  <!-- Reviews -->
+  <div class="box">
+    <h2>Reviews</h2>
+    <input id="revPetId" placeholder="Pet ID" /><br>
+    <textarea id="revText" placeholder="Review text"></textarea><br>
+    <button onclick="addReview()">Add Review</button>
+    <button onclick="listReviews()">List Reviews</button>
+    <pre id="reviews"></pre>
+  </div>
+
+  <script src="app.js"></script>
+
+    <!-- Sentiment Analysis -->
+  <div class="box">
+    <h2>Sentiment Analysis</h2>
+    <textarea id="sentText" placeholder="Enter text to analyze"></textarea><br>
+    <button onclick="analyzeSentiment()">Analyze</button>
+    <pre id="sentimentRes"></pre>
+  </div>
+
+</body>
+</html>
