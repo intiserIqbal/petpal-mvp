@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.js";
 import petRoutes from "./routes/pets.js";
 import reviewRoutes from "./routes/review.js";        // ✅ correct file name
 import sentimentRoutes from "./routes/sentiment.js";  // ✅ ESM import
+import uploadRoutes from "./routes/uploads.js";   // 🟢 NEW
 import { connectDB } from "./db/connect.js";
 
 // ---------------------------
@@ -48,7 +49,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
 app.use("/api/reviews", reviewRoutes);                     // 🟢 FIXED
 app.use("/api/analyze-sentiment", sentimentRoutes);        // 🟢 FIXED
-
+app.use("/api/uploads", uploadRoutes);                      // 🟢 NEW
 // appointments route removed (unused)
 // app.use("/api/appointments", appointmentRoutes);
 
