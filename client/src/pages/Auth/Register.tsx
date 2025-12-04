@@ -1,49 +1,87 @@
 import { useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    agree: false,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Sending registration data:", formData);
 
-    if (!formData.agree) {
-      setError("You must agree to the Terms & Conditions.");
+    // ----------------------
+    // Frontend Validation
+    // ----------------------
+    if (!formData.name.trim()) {
+      setError("Name is required");
+      return;
+    }
+    if (formData.name.trim().length < 2) {
+      setError("Name must be at least 2 characters");
       return;
     }
 
+    if (!formData.email.trim()) {
+      setError("Email is required");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      setError("Email is invalid");
+      return;
+    }
+
+    if (!formData.password) {
+      setError("Password is required");
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    // ----------------------
+    // Send to backend
+    // ----------------------
     try {
       setLoading(true);
       setError("");
       setSuccess("");
 
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
-        name: formData.name,
-        email: formData.email,
+      const res = await axios.post(`${API_URL}/api/auth/register`, {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
         password: formData.password,
       });
 
-      setSuccess("Account created successfully!");
-      setTimeout(() => navigate("/login"), 1500);
+      setSuccess("Registration successful!");
+
+      // Redirect user after registration
+      const redirectTo = searchParams.get("redirect") || "/";
+      setTimeout(() => {
+        navigate(`/login?redirect=${redirectTo}`, { replace: true });
+      }, 600);
 
     } catch (err: any) {
+      console.log("Backend error:", err.response?.data);
       setError(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -51,97 +89,73 @@ export default function Register() {
   };
 
   return (
-    <div className="w-[900px] mt-10 flex mx-auto border rounded-xl 
-     ">
-      {/* Left Image Section */}
-      <div className="w-1/2 bg-gradient-to-b from-[#e3f2fd] to-white flex flex-col items-center justify-center">
-        
-        <img
-          src="/dog.png"
-          alt="Puppy"
-          className=" w-full "
-        />
-        <p className="text-xl font-semibold mt-4">Register Now</p>
+    <div className="w-[900px] flex mx-auto border mt-10 rounded-xl">
+
+      {/* Left Image */}
+      <div className="w-1/3 flex flex-col items-center justify-center">
+        <img src="/dog.png" alt="Puppy" className="w-72" />
+        <p className="text-xl font-semibold mt-4">Join Us Today</p>
       </div>
 
-      {/* Right Form Section */}
+      {/* Registration Form */}
       <div className="w-1/2 flex items-center justify-center">
-        <form
-          onSubmit={handleSubmit}
-          className="w-96 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="w-96 space-y-4">
+
           <h2 className="text-3xl font-bold text-center mb-6">
-            Create your account
+            Create an Account
           </h2>
 
-          {/* NAME */}
           <input
             type="text"
             name="name"
             placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3"
-            required
+            className={`w-full border rounded-lg px-4 py-3 ${!formData.name && error.includes("Name") ? "border-red-500" : ""}`}
           />
 
-          {/* EMAIL */}
           <input
             type="email"
             name="email"
             placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3"
-            required
+            className={`w-full border rounded-lg px-4 py-3 ${!formData.email && error.includes("Email") ? "border-red-500" : ""}`}
           />
 
-          {/* PASSWORD */}
           <input
             type="password"
             name="password"
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3"
-            required
+            className={`w-full border rounded-lg px-4 py-3 ${formData.password.length < 6 && error.includes("Password") ? "border-red-500" : ""}`}
           />
 
-          {/* TERMS */}
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              name="agree"
-              checked={formData.agree}
-              onChange={handleChange}
-            />
-            I agree to all{" "}
-            <span className="text-blue-600 cursor-pointer">
-              Terms & Conditions
-            </span>
-          </label>
-
-          {/* ERROR / SUCCESS */}
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {success && <p className="text-green-600 text-sm">{success}</p>}
 
-          {/* SUBMIT BUTTON */}
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading ? "Registering..." : "Register"}
           </button>
 
-          <div className="text-center text-sm mt-3">
+          <p className="text-sm text-center mt-3">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-600">
-              Sign in
+            <Link
+              to={`/login?redirect=${searchParams.get("redirect") || "/"}`}
+              className="text-blue-500 hover:underline"
+            >
+              Login Here
             </Link>
-          </div>
+          </p>
+
         </form>
       </div>
+
     </div>
   );
 }

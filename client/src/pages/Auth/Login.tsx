@@ -1,9 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -13,6 +14,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -27,18 +30,19 @@ export default function Login() {
       setError("");
       setSuccess("");
 
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post(`${API_URL}/api/auth/login`, {
         email: formData.email,
         password: formData.password,
       });
 
-      // Save token
       localStorage.setItem("token", res.data.token);
+      window.dispatchEvent(new Event("storage")); // updates navbar
 
       setSuccess("Login successful!");
 
-      // Redirect after a short delay
-      setTimeout(() => navigate("/"), 900);
+      // Redirect to original requested page OR home
+      const redirectTo = searchParams.get("redirect") || "/";
+      setTimeout(() => navigate(redirectTo, { replace: true }), 600);
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");
@@ -48,29 +52,22 @@ export default function Login() {
   };
 
   return (
-    <div className=" w-[900px] flex mx-auto border mt-10  rounded-xl">
-      {/* Left Image Section */}
-      <div className="w-1/3  flex flex-col items-center justify-center ">
-        
-        <img
-          src="/dog.png"
-          alt="Puppy"
-          className="w-72 "
-        />
+    <div className="w-[900px] flex mx-auto border mt-10 rounded-xl">
+
+      {/* Left image */}
+      <div className="w-1/3 flex flex-col items-center justify-center">
+        <img src="/dog.png" alt="Puppy" className="w-72" />
         <p className="text-xl font-semibold mt-4">Welcome Back</p>
       </div>
 
-      {/* Right Form Section */}
+      {/* Form */}
       <div className="w-1/2 flex items-center justify-center">
-        <form
-          onSubmit={handleSubmit}
-          className="w-96 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="w-96 space-y-4">
+
           <h2 className="text-3xl font-bold text-center mb-6">
             Login to your account
           </h2>
 
-          {/* EMAIL */}
           <input
             type="email"
             name="email"
@@ -81,7 +78,6 @@ export default function Login() {
             required
           />
 
-          {/* PASSWORD */}
           <input
             type="password"
             name="password"
@@ -92,11 +88,9 @@ export default function Login() {
             required
           />
 
-          {/* ERROR / SUCCESS */}
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {success && <p className="text-green-600 text-sm">{success}</p>}
 
-          {/* SUBMIT BUTTON */}
           <button
             type="submit"
             disabled={loading}
@@ -105,14 +99,20 @@ export default function Login() {
             {loading ? "Signing In..." : "Sign In"}
           </button>
 
-          <div className="text-center text-sm mt-3">
-            Don’t have an account?{" "}
-            <Link to="/register" className="text-blue-600">
-              Create one
+          {/* Go to Register (keeps redirect link) */}
+          <p className="text-sm text-center mt-3">
+            Don't have an account?{" "}
+            <Link
+              to={`/register?redirect=${searchParams.get("redirect") || "/"}`}
+              className="text-blue-500 hover:underline"
+            >
+              Register Here
             </Link>
-          </div>
+          </p>
+
         </form>
       </div>
+
     </div>
   );
 }
