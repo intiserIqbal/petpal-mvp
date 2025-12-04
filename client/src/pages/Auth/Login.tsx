@@ -1,5 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
+// import axios from "axios";
+import { api, setAuthToken } from "../../services/api";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
 export default function Login() {
@@ -15,7 +16,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  // API base handled by src/services/api.ts
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -30,12 +31,14 @@ export default function Login() {
       setError("");
       setSuccess("");
 
-      const res = await axios.post(`${API_URL}/api/auth/login`, {
+      const res = await api.post("/auth/login", {
         email: formData.email,
         password: formData.password,
       });
 
+      // persist token and set default auth header
       localStorage.setItem("token", res.data.token);
+      setAuthToken(res.data.token);
       window.dispatchEvent(new Event("storage")); // updates navbar
 
       setSuccess("Login successful!");
@@ -43,7 +46,6 @@ export default function Login() {
       // Redirect to original requested page OR home
       const redirectTo = searchParams.get("redirect") || "/";
       setTimeout(() => navigate(redirectTo, { replace: true }), 600);
-
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");
     } finally {
@@ -53,7 +55,6 @@ export default function Login() {
 
   return (
     <div className="w-[900px] flex mx-auto border mt-10 rounded-xl">
-
       {/* Left image */}
       <div className="w-1/3 flex flex-col items-center justify-center">
         <img src="/dog.png" alt="Puppy" className="w-72" />
@@ -63,7 +64,6 @@ export default function Login() {
       {/* Form */}
       <div className="w-1/2 flex items-center justify-center">
         <form onSubmit={handleSubmit} className="w-96 space-y-4">
-
           <h2 className="text-3xl font-bold text-center mb-6">
             Login to your account
           </h2>
@@ -109,10 +109,8 @@ export default function Login() {
               Register Here
             </Link>
           </p>
-
         </form>
       </div>
-
     </div>
   );
 }

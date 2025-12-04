@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import { api } from "../../services/api";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
 export default function Register() {
@@ -16,7 +16,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  // API handled via services/api.ts (shared axios instance)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -66,7 +66,7 @@ export default function Register() {
       setError("");
       setSuccess("");
 
-      const res = await axios.post(`${API_URL}/api/auth/register`, {
+      await api.post("/auth/register", {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
@@ -79,7 +79,6 @@ export default function Register() {
       setTimeout(() => {
         navigate(`/login?redirect=${redirectTo}`, { replace: true });
       }, 600);
-
     } catch (err: any) {
       console.log("Backend error:", err.response?.data);
       setError(err.response?.data?.message || "Registration failed");
@@ -90,7 +89,6 @@ export default function Register() {
 
   return (
     <div className="w-[900px] flex mx-auto border mt-10 rounded-xl">
-
       {/* Left Image */}
       <div className="w-1/3 flex flex-col items-center justify-center">
         <img src="/dog.png" alt="Puppy" className="w-72" />
@@ -100,7 +98,6 @@ export default function Register() {
       {/* Registration Form */}
       <div className="w-1/2 flex items-center justify-center">
         <form onSubmit={handleSubmit} className="w-96 space-y-4">
-
           <h2 className="text-3xl font-bold text-center mb-6">
             Create an Account
           </h2>
@@ -111,7 +108,9 @@ export default function Register() {
             placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full border rounded-lg px-4 py-3 ${!formData.name && error.includes("Name") ? "border-red-500" : ""}`}
+            className={`w-full border rounded-lg px-4 py-3 ${
+              !formData.name && error.includes("Name") ? "border-red-500" : ""
+            }`}
           />
 
           <input
@@ -120,7 +119,9 @@ export default function Register() {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
-            className={`w-full border rounded-lg px-4 py-3 ${!formData.email && error.includes("Email") ? "border-red-500" : ""}`}
+            className={`w-full border rounded-lg px-4 py-3 ${
+              !formData.email && error.includes("Email") ? "border-red-500" : ""
+            }`}
           />
 
           <input
@@ -129,7 +130,11 @@ export default function Register() {
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className={`w-full border rounded-lg px-4 py-3 ${formData.password.length < 6 && error.includes("Password") ? "border-red-500" : ""}`}
+            className={`w-full border rounded-lg px-4 py-3 ${
+              formData.password.length < 6 && error.includes("Password")
+                ? "border-red-500"
+                : ""
+            }`}
           />
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -152,10 +157,8 @@ export default function Register() {
               Login Here
             </Link>
           </p>
-
         </form>
       </div>
-
     </div>
   );
 }

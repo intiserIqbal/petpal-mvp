@@ -64,6 +64,25 @@ app.get("/api/ping", (req, res) => {
 app.use(errorHandler);
 
 // ---------------------------
+// Registered routes
+// ---------------------------
+try {
+  console.log("Registered routes (attempt):");
+  if (app && app._router && Array.isArray(app._router.stack)) {
+    app._router.stack
+      .filter((r) => r.route)
+      .forEach((r) => {
+        const methods = Object.keys(r.route.methods).join(",").toUpperCase();
+        console.log(methods, r.route.path);
+      });
+  } else {
+    console.warn("app._router not available — route listing skipped.");
+  }
+} catch (err) {
+  console.error("Error while listing routes:", err);
+}
+
+// ---------------------------
 // Start server
 // ---------------------------
 const PORT = process.env.PORT || 5000;
