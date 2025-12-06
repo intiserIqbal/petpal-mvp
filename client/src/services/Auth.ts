@@ -1,4 +1,5 @@
 import axios from "axios";
+import { setAuthToken } from "./api";
 
 const API = "http://localhost:5000/api/auth"; 
 // Change port if your teammate uses a different one
@@ -22,4 +23,10 @@ export async function register(name: string, email: string, password: string) {
   });
 
   return response.data; // should return { token, user }
+}
+
+export function logout() {
+  localStorage.removeItem("token");
+  setAuthToken(); // clear Authorization header
+  window.dispatchEvent(new Event("storage"));
 }

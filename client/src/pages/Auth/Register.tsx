@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { api } from "../../services/api";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { api, setAuthToken } from "../../services/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -27,9 +27,7 @@ export default function Register() {
     e.preventDefault();
     console.log("Sending registration data:", formData);
 
-    // ----------------------
     // Frontend Validation
-    // ----------------------
     if (!formData.name.trim()) {
       setError("Name is required");
       return;
@@ -58,19 +56,23 @@ export default function Register() {
       return;
     }
 
-    // ----------------------
-    // Send to backend
-    // ----------------------
     try {
       setLoading(true);
       setError("");
       setSuccess("");
 
-      await api.post("/auth/register", {
+      const res = await api.post("/auth/register", {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
       });
+
+      // Save token after successful registration
+      if (res.data.success && res.data.token) {
+        localStorage.setItem("token", res.data.token);
+        setAuthToken(res.data.token);
+        window.dispatchEvent(new Event("storage"));
+      }
 
       setSuccess("Registration successful!");
 
