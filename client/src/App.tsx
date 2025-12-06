@@ -1,4 +1,5 @@
 import { Routes, Route, Outlet } from "react-router-dom";
+import { useEffect } from "react";
 
 import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
@@ -23,6 +24,7 @@ import Rehomemsg from "./pages/Rehome/Rehomemsg";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 
+import { setAuthToken } from "./services/api";
 
 // Layout wrapper — Navbar + page + Footer
 function Layout() {
@@ -42,15 +44,21 @@ function NotFound() {
   return <h2>404 - Page Not Found</h2>;
 }
 
-
 export default function App() {
+  // Restore token from localStorage on app mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setAuthToken(token);
+    }
+  }, []);
+
   return (
     <Routes>
       {/* Main layout wrapper */}
       <Route path="/" element={<Layout />}>
-
         {/* ⭐ Default Landing Page ⭐ */}
-        <Route index element={<Home />} />   {/* 👈 THIS LOADS FIRST */}
+        <Route index element={<Home />} /> {/* 👈 THIS LOADS FIRST */}
 
         {/* Public Routes */}
         <Route path="about" element={<AboutUs />} />
@@ -59,7 +67,6 @@ export default function App() {
 
         {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
-          
           {/* Adopt Routes */}
           <Route path="adopt" element={<AdoptStart />} />
           <Route path="adopt/address" element={<AdoptAddress />} />
