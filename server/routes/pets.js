@@ -1,74 +1,54 @@
-// server/routes/pets.js
 import express from "express";
-import Pet from "../models/Pet.js";
 import { protect } from "../middleware/auth.js";
-import validate from "../middleware/validate.js";
-import { PetCreateSchema, PetUpdateSchema, PetSearchSchema } from "../validation/petSchemas.js";
-
-import { validateCloudinaryUrl, extractPublicId, deleteImage } from "../utils/cloudinary.js";
+import Pet from "../models/Pet.js";
+import Review from "../models/Review.js";
 
 const router = express.Router();
-
-// Helper: sanitize images array (incoming are expected to be URLs from client-side Cloudinary upload)
-function sanitizeImageUrls(imageUrls = []) {
-  if (!Array.isArray(imageUrls)) return [];
-  const out = [];
-  for (const url of imageUrls) {
-    if (typeof url !== "string") continue;
-    if (!validateCloudinaryUrl(url)) continue;
-    const public_id = extractPublicId(url);
-    out.push({ url, public_id });
-  }
-  return out;
-}
 
 // ------------------------------
 // POST /api/pets (Create listing)
 // ------------------------------
-router.post("/", protect, validate(PetCreateSchema), async (req, res) => {
+router.post("/", protect, async (req, res) => {
   try {
     const {
-      name,
+      title,
       species,
-      breed,
       age,
-      sex,
-      description,
       location,
-      images: incomingImages,
+      description,
+      images = [], // array of strings (filenames/URLs)
+      sentiment, // optional string: "POSITIVE" | "NEGATIVE" | "NEUTRAL"
     } = req.body;
 
-    const images = sanitizeImageUrls(incomingImages);
-
     const pet = new Pet({
-      owner: req.user.id,
-      name,
+      title,
       species,
-      breed,
       age,
-      sex,
-      description,
       location,
+      description,
       images,
+      sentiment,
+      owner: req.user._id,
     });
 
-    // Optionally run sentiment analysis (if you want to keep the internal call as before)
-    // Note: keep it non-blocking/fail-safe
+    // Optionally run sentiment analysis (non-blocking)
     try {
       if (description && description.trim().length > 0) {
-        const response = await fetch(`${req.protocol}://${req.get("host")}/api/analyze-sentiment`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: req.headers.authorization,
-          },
-          body: JSON.stringify({ text: description }),
-        });
+        const response = await fetch(
+          `${req.protocol}://${req.get("host")}/api/analyze-sentiment`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: req.headers.authorization,
+            },
+            body: JSON.stringify({ text: description }),
+          }
+        );
         if (response.ok) {
           const json = await response.json();
-          if (json?.result && Array.isArray(json.result) && json.result[0] && json.result[0][0]) {
-            const r = json.result[0][0];
-            pet.sentiment = { label: r.label, score: r.score, model: "distilbert-base-uncased-finetuned-sst-2-english", analyzedAt: new Date() };
+          if (json?.sentiment) {
+            pet.sentiment = json.sentiment; // store plain string
           }
         }
       }
@@ -77,7 +57,8 @@ router.post("/", protect, validate(PetCreateSchema), async (req, res) => {
     }
 
     const saved = await pet.save();
-    return res.status(201).json({ success: true, pet: saved });
+    await saved.populate("owner", "name");
+    return res.status(201).json(saved); // return pet directly
   } catch (err) {
     console.error("POST /api/pets error:", err);
     return res.status(500).json({ success: false, message: "Server Error" });
@@ -85,91 +66,54 @@ router.post("/", protect, validate(PetCreateSchema), async (req, res) => {
 });
 
 // ------------------------------
-// GET /api/pets (List + Search)
-// ------------------------------
-router.get("/", validate(PetSearchSchema, "query"), async (req, res) => {
-  try {
-    const { q, species, city, page = 1, limit = 10 } = req.query;
-    const result = await Pet.searchAndPaginate({
-      q,
-      species,
-      city,
-      page: Number(page),
-      limit: Number(limit),
-    });
-    return res.json({ success: true, ...result });
-  } catch (err) {
-    console.error("GET /api/pets:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
-  }
-});
-
-// ------------------------------
-// GET /api/pets/:id (Detail)
-// ------------------------------
-router.get("/:id", async (req, res) => {
-  try {
-    const pet = await Pet.findById(req.params.id).populate("owner", "name email");
-    if (!pet) return res.status(404).json({ success: false, message: "Pet not found" });
-    return res.json({ success: true, pet });
-  } catch (err) {
-    console.error("GET /api/pets/:id:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
-  }
-});
-
-// ------------------------------
 // PUT /api/pets/:id (Update)
 // ------------------------------
-router.put("/:id", protect, validate(PetUpdateSchema), async (req, res) => {
+router.put("/:id", protect, async (req, res) => {
   try {
-    let pet = await Pet.findById(req.params.id);
+    const pet = await Pet.findById(req.params.id);
     if (!pet) return res.status(404).json({ success: false, message: "Pet not found" });
 
     // ownership check
-    if (pet.owner.toString() !== req.user.id) {
+    if (pet.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    // If client sends new images (array of Cloudinary URLs) then:
-    if (req.body.images && Array.isArray(req.body.images)) {
-      // Delete previously stored cloudinary images (if any have public_id)
-      if (Array.isArray(pet.images) && pet.images.length > 0) {
-        for (const img of pet.images) {
-          if (img.public_id) {
-            // attempt deletion but don't block on failure
-            await deleteImage(img.public_id).catch((e) => {
-              console.warn("Failed deleting cloud image:", e);
-            });
-          }
-        }
-      }
-      // sanitize and set new images
-      pet.images = sanitizeImageUrls(req.body.images);
-    }
+    const {
+      title,
+      species,
+      age,
+      location,
+      description,
+      images,
+      sentiment,
+    } = req.body;
 
-    // Apply other updates (safe fields)
-    const allowed = ["name", "species", "breed", "age", "sex", "description", "location"];
-    for (const k of allowed) {
-      if (k in req.body) pet[k] = req.body[k];
-    }
+    if (title !== undefined) pet.title = title;
+    if (species !== undefined) pet.species = species;
+    if (age !== undefined) pet.age = age;
+    if (location !== undefined) pet.location = location;
+    if (description !== undefined) pet.description = description;
+    if (images !== undefined) pet.images = images; // overwrite with provided array
+    if (sentiment !== undefined) pet.sentiment = sentiment;
 
-    // If description changed then re-run sentiment (non-blocking if fails)
+    // Re-run sentiment if description changed
     if (req.body.description) {
       try {
-        const response = await fetch(`${req.protocol}://${req.get("host")}/api/analyze-sentiment`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: req.headers.authorization,
-          },
-          body: JSON.stringify({ text: req.body.description }),
-        });
+        const response = await fetch(
+          `${req.protocol}://${req.get("host")}/api/analyze-sentiment`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: req.headers.authorization,
+            },
+            body: JSON.stringify({ text: req.body.description }),
+          }
+        );
         if (response.ok) {
           const json = await response.json();
-          if (json?.result && json.result[0] && json.result[0][0]) {
-            const r = json.result[0][0];
-            pet.sentiment = { label: r.label, score: r.score, model: "distilbert-base-uncased-finetuned-sst-2-english", analyzedAt: new Date() };
+          if (json?.sentiment) {
+            pet.sentiment = json.sentiment; // store plain string
           }
         }
       } catch (err) {
@@ -178,7 +122,8 @@ router.put("/:id", protect, validate(PetUpdateSchema), async (req, res) => {
     }
 
     const updated = await pet.save();
-    return res.json({ success: true, pet: updated });
+    await updated.populate("owner", "name");
+    return res.json(updated); // return pet directly
   } catch (err) {
     console.error("PUT /api/pets/:id error:", err);
     return res.status(500).json({ success: false, message: "Server Error" });
@@ -186,34 +131,75 @@ router.put("/:id", protect, validate(PetUpdateSchema), async (req, res) => {
 });
 
 // ------------------------------
-// DELETE /api/pets/:id (Delete)
+// GET /api/pets
 // ------------------------------
+router.get("/", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page || "1");
+    const limit = parseInt(req.query.limit || "10");
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    if (req.query.q) {
+      query.$or = [
+        { title: { $regex: req.query.q, $options: "i" } },
+        { species: { $regex: req.query.q, $options: "i" } },
+        { location: { $regex: req.query.q, $options: "i" } },
+      ];
+    }
+
+    const [pets, total] = await Promise.all([
+      Pet.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate("owner", "name"),
+      Pet.countDocuments(query),
+    ]);
+
+    res.json({ pets, total, hasMore: skip + pets.length < total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch pets" });
+  }
+});
+
+// GET /api/pets/:id
+router.get("/:id", async (req, res) => {
+  try {
+    const pet = await Pet.findById(req.params.id).populate("owner", "name");
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
+    res.json(pet);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch pet" });
+  }
+});
+
+// DELETE /api/pets/:id
 router.delete("/:id", protect, async (req, res) => {
   try {
     const pet = await Pet.findById(req.params.id);
-    if (!pet) return res.status(404).json({ success: false, message: "Pet not found" });
-
-    // ownership check
-    if (pet.owner.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: "Not authorized" });
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
+    if (pet.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
     }
 
-    // delete cloudinary images
-    if (Array.isArray(pet.images) && pet.images.length > 0) {
-      for (const img of pet.images) {
-        if (img.public_id) {
-          await deleteImage(img.public_id).catch((e) => {
-            console.warn("Failed deleting cloud image:", e);
-          });
-        }
-      }
-    }
-
-    await pet.deleteOne();
-    return res.json({ success: true, message: "Pet deleted" });
+    await Review.deleteMany({ pet: pet._id });
+    await Pet.deleteOne({ _id: pet._id }); // no Cloudinary deletion
+    res.json({ message: "Pet deleted" });
   } catch (err) {
-    console.error("DELETE /api/pets/:id error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete pet" });
+  }
+});
+
+// GET /api/pets/:id/reviews  (needed by client)
+router.get("/:id/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find({ pet: req.params.id })
+      .sort({ createdAt: -1 })
+      .populate("user", "name");
+    res.json(reviews);
+  } catch (err) {
+    console.error("GET /api/pets/:id/reviews error:", err);
+    res.status(500).json({ message: "Failed to fetch reviews" });
   }
 });
 

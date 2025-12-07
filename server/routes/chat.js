@@ -7,20 +7,13 @@ const router = express.Router();
 
 router.post("/", protect, async (req, res) => {
   try {
-    const { text } = req.body;
+    // NOTE: Changed from 'query' to 'text' for consistency if you're using a single input field
+    const { query } = req.body;
 
-    if (!text) {
-      return res.status(400).json({ error: "Text is required" });
+    if (!query) {
+      return res.status(400).json({ error: "Query is required" });
     }
 
-    // Prompt for classification
-    const prompt = `
-Classify the sentiment of the following text as POSITIVE, NEGATIVE, or NEUTRAL.
-Text: "${text}"
-Return only one word.
-    `;
-
-    // Call Groq API
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -28,27 +21,28 @@ Return only one word.
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        // 🔄 UPDATED MODEL: Use llama-3.1-8b-instant (the fast, small, current version)
+        // 🔄 UPDATED MODEL: Use llama-3.1-8b-instant
         model: "llama-3.1-8b-instant",
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "system", content: "You are a helpful pet advisor." },
+          { role: "user", content: query }
+        ],
       }),
     });
+
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Groq Sentiment Error:", data);
+      console.error("Groq Error:", data);
       return res.status(500).json({ error: "Groq API error", details: data });
     }
 
-    const sentiment = data?.choices?.[0]?.message?.content?.trim();
+    const answer = data?.choices?.[0]?.message?.content || "No answer";
 
-    res.json({
-      success: true,
-      sentiment,
-    });
+    res.json({ success: true, answer });
   } catch (err) {
-    console.error("Sentiment Error:", err);
+    console.error("Chat route error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

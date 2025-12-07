@@ -1,9 +1,24 @@
 // server/routes/uploads.js
 import express from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { protect } from "../middleware/auth.js";
 import { validateCloudinaryUrl, extractPublicId } from "../utils/cloudinary.js";
 
 const router = express.Router();
+
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadDir),
+  filename: (_req, file, cb) => {
+    const safeName = file.originalname.replace(/\s+/g, "_");
+    cb(null, `${Date.now()}-${safeName}`);
+  },
+});
+const upload = multer({ storage });
 
 /**
  * POST /api/uploads/verify
@@ -77,6 +92,12 @@ router.post("/proxy", protect, async (req, res) => {
     console.error("POST /api/uploads/proxy error:", err);
     return res.status(500).json({ success: false, message: "Server Error" });
   }
+});
+
+router.post("/", protect, upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+  const url = `/uploads/${req.file.filename}`;
+  res.status(201).json({ url, filename: req.file.filename });
 });
 
 export default router;
