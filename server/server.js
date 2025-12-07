@@ -8,33 +8,28 @@ import dotenv from "dotenv";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.js";
 import petRoutes from "./routes/pets.js";
-import reviewRoutes from "./routes/review.js";        // ✅ correct file name
-import sentimentRoutes from "./routes/sentiment.js";  // ✅ ESM import
-import uploadRoutes from "./routes/uploads.js";   // 🟢 NEW
+import reviewRoutes from "./routes/review.js";
+import sentimentRoutes from "./routes/sentiment.js";
+import uploadsRouter from "./routes/uploads.js";
+import chatRoutes from "./routes/chat.js";
 import { connectDB } from "./db/connect.js";
 
-// ---------------------------
-// Load environment variables
-// ---------------------------
 dotenv.config();
-
-// ---------------------------
-// Connect to MongoDB
-// ---------------------------
 connectDB();
 
-// ---------------------------
-// Initialize app
-// ---------------------------
 const app = express();
 
-// ---------------------------
-// Security & middleware
-// ---------------------------
+// Serve local uploads (added)
+app.use("/uploads", express.static("uploads"));
+
+// ----------------------------
+// Middleware
+// ----------------------------
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(express.json({ limit: "200kb" })); // safe JSON limit
 
+// CORS
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -42,50 +37,45 @@ app.use(
   })
 );
 
-// ---------------------------
+// ----------------------------
 // Routes
-// ---------------------------
+// ----------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
-app.use("/api/reviews", reviewRoutes);                     // 🟢 FIXED
-app.use("/api/analyze-sentiment", sentimentRoutes);        // 🟢 FIXED
-app.use("/api/uploads", uploadRoutes);                      // 🟢 NEW
-// appointments route removed (unused)
-// app.use("/api/appointments", appointmentRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/analyze-sentiment", sentimentRoutes);
+app.use("/api/uploads", uploadsRouter);
+app.use("/api/chat", chatRoutes);
 
-// Test Ping
+// test route
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, message: "PetPal API is running 🎉" });
 });
 
-// ---------------------------
-// Error handler (must be last)
-// ---------------------------
+// Error handler
 app.use(errorHandler);
 
-// ---------------------------
-// Registered routes
-// ---------------------------
+// ----------------------------
+// Route listing
+// ----------------------------
 try {
-  console.log("Registered routes (attempt):");
-  if (app && app._router && Array.isArray(app._router.stack)) {
-    app._router.stack
-      .filter((r) => r.route)
-      .forEach((r) => {
-        const methods = Object.keys(r.route.methods).join(",").toUpperCase();
-        console.log(methods, r.route.path);
-      });
-  } else {
-    console.warn("app._router not available — route listing skipped.");
-  }
-} catch (err) {
-  console.error("Error while listing routes:", err);
+  console.log("\nRegistered routes:");
+  app._router.stack
+    .filter((r) => r.route)
+    .forEach((r) => {
+      const methods = Object.keys(r.route.methods)
+        .map((m) => m.toUpperCase())
+        .join(",");
+      console.log(`  ${methods}  ${r.route.path}`);
+    });
+} catch (e) {
+  console.warn("Could not list routes.");
 }
 
-// ---------------------------
-// Start server
-// ---------------------------
+// ----------------------------
+// Start Server
+// ----------------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
