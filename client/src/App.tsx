@@ -1,9 +1,11 @@
 import { Routes, Route, Outlet } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
+import Rehomeconfirm from "./pages/Rehome/Rehomeconfirm";
+
 
 // Adopt pages
 import AdoptStart from "./pages/Adoptstart";
@@ -23,16 +25,27 @@ import Rehomemsg from "./pages/Rehome/Rehomemsg";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 
+// Admin page
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminNavbar from "./components/AdminNavbar";
 
 // Layout wrapper — Navbar + page + Footer
 function Layout() {
+
+const location = useLocation();
+
+  // Show admin navbar if route starts with "/admin"
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+
+
   return (
     <>
-      <Navbar />
-      <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white  ">
+      {isAdminRoute ? <AdminNavbar /> : <Navbar />}
+      <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
         <Outlet />
       </div>
-      <Footer />
+      {!isAdminRoute && <Footer />}
     </>
   );
 }
@@ -42,7 +55,6 @@ function NotFound() {
   return <h2>404 - Page Not Found</h2>;
 }
 
-
 export default function App() {
   return (
     <Routes>
@@ -50,7 +62,7 @@ export default function App() {
       <Route path="/" element={<Layout />}>
 
         {/* ⭐ Default Landing Page ⭐ */}
-        <Route index element={<Home />} />   {/* 👈 THIS LOADS FIRST */}
+        <Route index element={<Home />} />  
 
         {/* Public Routes */}
         <Route path="about" element={<AboutUs />} />
@@ -70,6 +82,11 @@ export default function App() {
           <Route path="rehome" element={<Rehomestart />} />
           <Route path="rehome/dashboard" element={<Rehomedashboard />} />
           <Route path="rehome/notification" element={<Rehomemsg />} />
+          <Route path="rehome/confirm" element={<Rehomeconfirm />} />
+
+          {/* Admin Route — only visible for admins */}
+          <Route path="admin" element={<AdminDashboard />} />
+
         </Route>
 
         {/* 404 fallback */}

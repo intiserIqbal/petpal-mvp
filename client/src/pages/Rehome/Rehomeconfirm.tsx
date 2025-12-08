@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-export default function AdoptConfirm() {
+export default function Rehomeconfirm() {
   const [showModal, setShowModal] = useState(true);
 
   // Automatically hide modal after 3 seconds
@@ -19,31 +19,31 @@ export default function AdoptConfirm() {
 
             {/* Step 1 */}
             <Link to="/adopt" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">1</div>
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">1</div>
               <span className="text-sm mt-2">Start</span>
             </Link>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 2 */}
-            <Link to="/adopt/address" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">2</div>
-              <span className="text-sm mt-2">Address</span>
+            <Link to="/rehome/dashboard" className="flex flex-col items-center flex-1">
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">2</div>
+              <span className="text-sm mt-2">Dashboard</span>
             </Link>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 3 */}
-            <Link to="/adopt/home" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">3</div>
-              <span className="text-sm mt-2">Home</span>
+            <Link to="/rehome/notification" className="flex flex-col items-center flex-1">
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">3</div>
+              <span className="text-sm mt-2">notification</span>
             </Link>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 4 (ACTIVE) */}
             <div className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center">4</div>
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">4</div>
               <span className="text-sm mt-2">Confirm</span>
             </div>
 
@@ -110,7 +110,7 @@ export default function AdoptConfirm() {
           </div>
 
           <Link
-            to="/"
+            to="/rehome"
             className="mt-8 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm"
           >
             Go To My Profile

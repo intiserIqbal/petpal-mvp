@@ -17,34 +17,45 @@ export default function Login() {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
     try {
-      setLoading(true);
-      setError("");
-      setSuccess("");
-
       const res = await axios.post(`${API_URL}/api/auth/login`, {
         email: formData.email,
         password: formData.password,
       });
 
-      localStorage.setItem("token", res.data.token);
-      window.dispatchEvent(new Event("storage")); // updates navbar
+      const user = res.data.user; // { id, name, email, role }
+      const token = res.data.token;
+
+      // Store token and user
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Trigger storage event for Navbar update
+      window.dispatchEvent(new Event("storage"));
 
       setSuccess("Login successful!");
 
-      // Redirect to original requested page OR home
-      const redirectTo = searchParams.get("redirect") || "/";
-      setTimeout(() => navigate(redirectTo, { replace: true }), 600);
+      // Role-based redirect
+      if (user.role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        const redirectTo = searchParams.get("redirect") || "/";
+        navigate(redirectTo, { replace: true });
+      }
 
     } catch (err: any) {
+      console.log("Login error:", err.response?.data);
       setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
@@ -99,7 +110,6 @@ export default function Login() {
             {loading ? "Signing In..." : "Sign In"}
           </button>
 
-          {/* Go to Register (keeps redirect link) */}
           <p className="text-sm text-center mt-3">
             Don't have an account?{" "}
             <Link

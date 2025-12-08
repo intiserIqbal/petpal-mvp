@@ -10,6 +10,7 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
+    adminCode: "", // new field for admin registration
   });
 
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,7 @@ export default function Register() {
   const [success, setSuccess] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const ADMIN_SECRET_CODE = import.meta.env.VITE_ADMIN_SECRET; // store secret in env
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -25,37 +27,24 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sending registration data:", formData);
 
     // ----------------------
     // Frontend Validation
     // ----------------------
-    if (!formData.name.trim()) {
-      setError("Name is required");
-      return;
-    }
-    if (formData.name.trim().length < 2) {
-      setError("Name must be at least 2 characters");
-      return;
-    }
-
-    if (!formData.email.trim()) {
-      setError("Email is required");
-      return;
-    }
+    if (!formData.name.trim()) return setError("Name is required");
+    if (formData.name.trim().length < 2) return setError("Name must be at least 2 characters");
+    if (!formData.email.trim()) return setError("Email is required");
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
-      setError("Email is invalid");
-      return;
-    }
+    if (!emailRegex.test(formData.email.trim())) return setError("Email is invalid");
+    if (!formData.password) return setError("Password is required");
+    if (formData.password.length < 6) return setError("Password must be at least 6 characters");
 
-    if (!formData.password) {
-      setError("Password is required");
-      return;
-    }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
+    // ----------------------
+    // Determine role
+    // ----------------------
+    let role = "user"; // default
+    if (formData.adminCode.trim() === ADMIN_SECRET_CODE) {
+      role = "admin";
     }
 
     // ----------------------
@@ -66,13 +55,14 @@ export default function Register() {
       setError("");
       setSuccess("");
 
-      const res = await axios.post(`${API_URL}/api/auth/register`, {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-      });
+     const res = await axios.post(`${API_URL}/api/auth/register`, {
+    name: formData.name.trim(),
+    email: formData.email.trim(),
+    password: formData.password,
+    adminCode: formData.adminCode.trim(), // send admin code
+});
 
-      setSuccess("Registration successful!");
+      setSuccess(`Registration successful!${role === "admin" ? " You are now an admin." : ""}`);
 
       // Redirect user after registration
       const redirectTo = searchParams.get("redirect") || "/";
@@ -130,6 +120,16 @@ export default function Register() {
             value={formData.password}
             onChange={handleChange}
             className={`w-full border rounded-lg px-4 py-3 ${formData.password.length < 6 && error.includes("Password") ? "border-red-500" : ""}`}
+          />
+
+          {/* Optional admin code input */}
+          <input
+            type="text"
+            name="adminCode"
+            placeholder="Admin Code (optional)"
+            value={formData.adminCode}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-4 py-3"
           />
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
