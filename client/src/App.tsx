@@ -1,11 +1,16 @@
-import { Routes, Route, Outlet } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { Routes, Route, Outlet, useLocation } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
+import AdminRoute from "./components/AdminRoute";
+
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Home from "./pages/Home";
-import Rehomeconfirm from "./pages/Rehome/Rehomeconfirm";
+import AdminNavbar from "./components/AdminNavbar";
 
+// Public pages
+import Home from "./pages/Home";
+import AboutUs from "./pages/Aboutus";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
 
 // Adopt pages
 import AdoptStart from "./pages/Adoptstart";
@@ -13,38 +18,36 @@ import AdoptAddress from "./pages/Adoptaddress";
 import Adopthome from "./pages/Adopthome";
 import Adoptconfirm from "./pages/Adoptconfirm";
 
-// Public pages
-import AboutUs from "./pages/Aboutus";
-
 // Rehome pages
 import Rehomestart from "./pages/Rehome/Rehomestart";
 import Rehomedashboard from "./pages/Rehome/Rehomedashboard";
 import Rehomemsg from "./pages/Rehome/Rehomemsg";
+import Rehomeconfirm from "./pages/Rehome/Rehomeconfirm";
 
-// Auth pages
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
-
-// Admin page
+// Admin pages
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import AdminNavbar from "./components/AdminNavbar";
 
-// Layout wrapper — Navbar + page + Footer
+// If you have more admin pages, like Approved or Rejected, import them here:
+ import ApprovedPets from "./pages/Admin/ApprovedPets";
+import RejectedPets from "./pages/Admin/RejectedPets";
+
+// Layout component — Navbar + Content + Footer
 function Layout() {
+  const location = useLocation();
 
-const location = useLocation();
-
-  // Show admin navbar if route starts with "/admin"
   const isAdminRoute = location.pathname.startsWith("/admin");
-
-
 
   return (
     <>
+      {/* if admin route -> AdminNavbar else main Navbar */}
       {isAdminRoute ? <AdminNavbar /> : <Navbar />}
+
+      {/* Main content area */}
       <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
         <Outlet />
       </div>
+
+      {/* Hide footer only on admin routes */}
       {!isAdminRoute && <Footer />}
     </>
   );
@@ -58,35 +61,39 @@ function NotFound() {
 export default function App() {
   return (
     <Routes>
-      {/* Main layout wrapper */}
+      {/* Wrap everything in main layout */}
       <Route path="/" element={<Layout />}>
 
-        {/* ⭐ Default Landing Page ⭐ */}
-        <Route index element={<Home />} />  
+        {/* Default Landing Page */}
+        <Route index element={<Home />} />
 
         {/* Public Routes */}
         <Route path="about" element={<AboutUs />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
 
-        {/* Protected Routes */}
+        {/* User Protected Routes */}
         <Route element={<PrivateRoute />}>
-          
-          {/* Adopt Routes */}
+
+          {/* Adopt Pages */}
           <Route path="adopt" element={<AdoptStart />} />
           <Route path="adopt/address" element={<AdoptAddress />} />
           <Route path="adopt/home" element={<Adopthome />} />
           <Route path="adopt/confirm" element={<Adoptconfirm />} />
 
-          {/* Rehome Routes */}
+          {/* Rehome Pages */}
           <Route path="rehome" element={<Rehomestart />} />
           <Route path="rehome/dashboard" element={<Rehomedashboard />} />
           <Route path="rehome/notification" element={<Rehomemsg />} />
           <Route path="rehome/confirm" element={<Rehomeconfirm />} />
+        </Route>
 
-          {/* Admin Route — only visible for admins */}
+        {/* ADMIN ROUTES — Works only if logged in & role = admin */}
+        <Route element={<AdminRoute />}>
           <Route path="admin" element={<AdminDashboard />} />
-
+          {/* Add more admin routes if needed */}
+           <Route path="admin/approved" element={<ApprovedPets />} /> 
+           <Route path="admin/rejected" element={<RejectedPets />} />
         </Route>
 
         {/* 404 fallback */}

@@ -45,7 +45,7 @@ export default function Rehomedashboard() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-screen ">
       {/* Progress Bar */}
       <div className="w-full bg-white shadow-sm mb-6">
         <div className="max-w-5xl mx-auto py-6 flex items-center justify-between">
@@ -78,16 +78,16 @@ export default function Rehomedashboard() {
       ) : pets.length === 0 ? (
         <p className="text-center text-gray-600">You have not submitted any pets yet.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {pets.map((pet) => (
             <div
               key={pet._id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 flex flex-col"
+              className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 p-4 flex flex-col"
             >
               <img
                 src={pet.image || "/placeholder.png"}
                 alt={pet.name}
-                className="w-full h-48 object-cover"
+                className="w-full h-48 object-cover rounded-lg"
               />
               <div className="p-4 flex flex-col flex-1 justify-between">
                 <div>

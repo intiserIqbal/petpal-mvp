@@ -91,7 +91,7 @@ export default function Navbar() {
         </nav>
 
         {/* Search */}
-        <form onSubmit={handleSearch} className="relative hidden md:block">
+        <form onSubmit={handleSearch} className="relative hidden md:block mt-5">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
