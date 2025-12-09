@@ -94,23 +94,17 @@ export default function AdoptAddress() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium">Telephone Number *</label>
-              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Landline Telephone" />
+              <label className="block text-sm font-medium">District</label>
+              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="district" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Mobile</label>
+              <label className="block text-sm font-medium">Mobile *</label>
               <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Mobile" />
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button type="button" className="bg-blue-500 text-white px-4 py-2 rounded">
-              Send Verification Code
-            </button>
-
-            <input type="text" className="border px-3 py-2 rounded w-40" placeholder="Verification Code" />
-          </div>
+          
 
           <div className="flex justify-between mt-6">
             <button

@@ -43,7 +43,6 @@ const verifyToken = (req, res, next) => {
 const isAdmin = (req, res, next) => {
   if (req.userRole !== "admin")
     return res.status(403).json({ message: "Access denied" });
-
   next();
 };
 
@@ -51,9 +50,11 @@ const isAdmin = (req, res, next) => {
 const sanitize = (str) =>
   typeof str === "string" ? str.replace(/"/g, "") : str;
 
-// ============================
+// ---------------------------
+// PUBLIC / USER ROUTES
+// ---------------------------
+
 // POST rehome pet
-// ============================
 router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const newPet = new Pet({
@@ -78,9 +79,7 @@ router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => 
   }
 });
 
-// ============================
-// GET my pets
-// ============================
+// GET my pets (for logged-in user)
 router.get("/mine", verifyToken, async (req, res) => {
   try {
     const pets = await Pet.find({ owner: req.userId });
@@ -90,13 +89,10 @@ router.get("/mine", verifyToken, async (req, res) => {
   }
 });
 
-// ============================
-// DELETE pet
-// ============================
+// DELETE a pet (by owner)
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
     const pet = await Pet.findOne({ _id: req.params.id, owner: req.userId });
-
     if (!pet) return res.status(404).json({ message: "Pet not found" });
 
     if (pet.image) {
@@ -105,38 +101,34 @@ router.delete("/:id", verifyToken, async (req, res) => {
     }
 
     await Pet.deleteOne({ _id: req.params.id });
-
     res.json({ message: "Pet deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// ============================
+// ---------------------------
 // ADMIN ROUTES
-// ============================
+// ---------------------------
 
-// Get pending pets
+// GET pending pets (for admin)
 router.get("/pending", verifyToken, isAdmin, async (req, res) => {
   try {
-    const pets = await Pet.find({ status: "pending" })
-      .populate("owner", "name email");
+    const pets = await Pet.find({ status: "pending" }).populate("owner", "name email");
     res.json({ pets });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Approve / reject pet
+// Approve / reject pet (admin)
 router.put("/update/:id", verifyToken, isAdmin, async (req, res) => {
   const { status } = req.body;
-
   if (!["approved", "rejected"].includes(status))
     return res.status(400).json({ message: "Invalid status" });
 
   try {
     const pet = await Pet.findById(req.params.id);
-
     if (!pet) return res.status(404).json({ message: "Pet not found" });
 
     pet.status = status;
@@ -153,35 +145,45 @@ router.put("/update/:id", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Fetch notifications
-router.get("/notifications", verifyToken, async (req, res) => {
+// ---------------------------
+// PUBLIC LIST FETCH ROUTES
+// ---------------------------
+
+// Get all approved pets
+router.get("/approved", async (req, res) => {
   try {
-    const notifications = await Notification.find({ user: req.userId }).sort({
-      time: -1,
+    const pets = await Pet.find({ status: "approved" });
+    res.json({ pets });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Search (approved pets) by query
+router.get("/search", async (req, res) => {
+  const q = req.query.query || "";
+  const regex = new RegExp(q, "i");
+  try {
+    const pets = await Pet.find({
+      status: "approved",
+      $or: [
+        { name: { $regex: regex } },
+        { breed: { $regex: regex } },
+        { category: { $regex: regex } },
+      ],
     });
-    res.json({ notifications });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// FETCH APPROVED pets (WITH owner info) 🚀 FIXED
-router.get("/approved", verifyToken, isAdmin, async (req, res) => {
-  try {
-    const pets = await Pet.find({ status: "approved" })
-      .populate("owner", "name email");
     res.json({ pets });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// FETCH REJECTED pets (WITH owner info) 🚀 FIXED
-router.get("/rejected", verifyToken, isAdmin, async (req, res) => {
+// Get a pet by ID — **this must come last** to avoid route conflicts
+router.get("/:id", async (req, res) => {
   try {
-    const pets = await Pet.find({ status: "rejected" })
-      .populate("owner", "name email");
-    res.json({ pets });
+    const pet = await Pet.findById(req.params.id);
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
+    res.json({ pet });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

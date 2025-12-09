@@ -30,6 +30,9 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 // If you have more admin pages, like Approved or Rejected, import them here:
  import ApprovedPets from "./pages/Admin/ApprovedPets";
 import RejectedPets from "./pages/Admin/RejectedPets";
+//search
+import SearchPets from "./pages/search/SearchPets";
+import PetDetail from "./pages/search/PetDetail";
 
 // Layout component — Navbar + Content + Footer
 function Layout() {
@@ -71,6 +74,8 @@ export default function App() {
         <Route path="about" element={<AboutUs />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="search" element={<SearchPets />} />
+        <Route path="pet/:id" element={<PetDetail />} />
 
         {/* User Protected Routes */}
         <Route element={<PrivateRoute />}>
