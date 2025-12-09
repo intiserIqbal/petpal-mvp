@@ -8,42 +8,92 @@
 
 ---
 
-### 🚀 Overview
-**PetPal** is a MERN + JWT-based pet adoption platform.  
-It connects adopters and pet owners through listings, search filters, sentiment analysis, and review systems.
+## 🚀 Overview
 
-> 🧩 Currently in **Sprint 2 – Core Features & Cross-Platform Readiness** (Dec 1 → Dec 8)
+**PetPal** is an AI-enhanced pet adoption platform built with the MERN stack (MongoDB, Express, React, Node.js) and JWT authentication.  
+It connects adopters and pet owners through secure listings, search filters, AI-powered sentiment analysis, and a review system.
 
----
-
-### 🎯 Sprint 2 Goal
-Build PetPal's core product features and ensure cross‑platform readiness:
-- Pet Listings CRUD with Cloudinary image upload
-- Search & filter functionality (species, location, text)
-- HuggingFace sentiment analysis integration
-- Review system (text‑only, moderated)
-- Expo mobile adaptation for iOS + Android
+- **Backend:** Node.js/Express, MongoDB Atlas (free tier), JWT, Groq API for sentiment analysis
+- **Frontend:** React (Vite), Tailwind CSS, RESTful API integration
+- **Image Uploads:** Local storage via Multer (no Cloudinary, fully free)
+- **Deployment:** Render.com (backend), Vercel (frontend), all on free tiers
 
 ---
 
-### 👥 Team & XP Practices
+## 🎯 MVP Features
 
-* **Version Control:** GitHub (main protected, PRs via dev)
-* **Collaboration:** Discord (#petpal-team)
-* **CI/CD:** Manual PR merge (every 2 days)
-* **Pair Programming:** Intiser + Teammate A
-* **Faculty Feedback:** Documented in Trello
+- Pet Listings CRUD (Create, Read, Update, Delete)
+- Secure user authentication (JWT)
+- Review system for pet listings
+- AI-powered sentiment analysis (Groq API)
+- Local image uploads (no external paid services)
+- Owner-only edit/delete permissions
+- Responsive web UI (mobile-friendly)
 
 ---
 
-### 🧾 Sprint 2 Deliverables (by Dec 8)
+## 🧑‍💻 Team & Workflow
 
-✅ Pet Listings CRUD (backend + frontend)
-✅ Search & Filters (frontend + backend)
-✅ Sentiment analysis integration (backend)
-✅ Review system (backend + frontend)
-✅ Expo mobile adaptation (frontend/mobile)
+- **Version Control:** GitHub (main protected, PRs via dev)
+- **Collaboration:** Discord (#petpal-team)
+- **CI/CD:** Manual PR merge (every 2 days)
+- **Pair Programming:** Intiser + Teammate A
+- **Faculty Feedback:** Documented in Trello
 
-### 📜 License
+---
+
+## 🏗️ Architecture
+
+- **Backend:**
+
+  - RESTful API (`/api/pets`, `/api/auth`, `/api/reviews`, `/api/analyze-sentiment`, `/api/uploads`)
+  - MongoDB Atlas for persistent data
+  - Groq API for sentiment analysis (free, regionally available)
+  - Multer for local image uploads
+  - Owner checks for secure CRUD operations
+
+- **Frontend:**
+  - React SPA (Vite)
+  - Tailwind CSS for rapid UI
+  - API integration via Axios
+  - Responsive design for desktop and mobile browsers
+
+---
+
+## 🛡️ Free Tier Compliance
+
+All services (MongoDB Atlas, Render, Vercel, Groq) are on free plans.  
+No credit card required for any backend or frontend service.
+
+---
+
+## 📈 Strengths & Potential Updates
+
+- **Strengths:**
+
+  - 100% free deployment (no paid APIs or hosting)
+  - AI-powered sentiment analysis for pet descriptions
+  - Secure, owner-only listing management
+  - Modular codebase for easy extension
+
+- **Potential Updates:**
+  - Add advanced search and filtering (by breed, age, location)
+  - Integrate push notifications (email/SMS)
+  - Expand to React Native/Expo for true cross-platform mobile support
+  - Add moderation/admin dashboard
+  - Implement OAuth/social login
+  - Enhance review system (images, ratings breakdown)
+  - Add chat/messaging between adopters and owners
+
+---
+
+## 📜 License
 
 MIT License © 2025 [Intiser Iqbal](https://github.com/intiserIqbal)
+
+---
+
+## 📝 Academic Note
+
+This project demonstrates a scalable, AI-enhanced full-stack application using only free-tier cloud services.  
+It is suitable for academic demonstration, MVP launches, and further research in digital adoption platforms.
