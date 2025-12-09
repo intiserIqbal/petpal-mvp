@@ -19,7 +19,7 @@ connectDB();
 
 const app = express();
 
-// Serve local uploads (added)
+// Serve local uploads
 app.use("/uploads", express.static("uploads"));
 
 // ----------------------------
@@ -47,7 +47,12 @@ app.use("/api/analyze-sentiment", sentimentRoutes);
 app.use("/api/uploads", uploadsRouter);
 app.use("/api/chat", chatRoutes);
 
-// test route
+// Health check route for Render
+app.get("/health", (req, res) => {
+  res.send("OK");
+});
+
+// Test route
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, message: "PetPal API is running 🎉" });
 });
