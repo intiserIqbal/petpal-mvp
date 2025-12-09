@@ -57,6 +57,10 @@ app.get("/api/ping", (req, res) => {
   res.json({ ok: true, message: "PetPal API is running 🎉" });
 });
 
+app.get("/", (req, res) => {
+  res.send("PetPal API is running.");
+});
+
 // Error handler
 app.use(errorHandler);
 
