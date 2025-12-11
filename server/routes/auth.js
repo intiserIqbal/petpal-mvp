@@ -1,12 +1,16 @@
+// server/routes/auth.js
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import { validate } from "../middleware/validate.js";
+import validate from "../middleware/validate.js";   // ✅ FIXED: default import
 import { z } from "zod";
 
 const router = express.Router();
 
+// ----------------------
+// VALIDATION SCHEMAS
+// ----------------------
 const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
@@ -23,7 +27,7 @@ const loginSchema = z.object({
 // REGISTER
 // ----------------------
 router.post("/register", validate(registerSchema), async (req, res) => {
-  const { name, email, password, adminCode } = req.validatedData;
+  const { name, email, password, adminCode } = req.body;   // ✅ FIXED
 
   try {
     const existingUser = await User.findOne({ email });
@@ -34,16 +38,17 @@ router.post("/register", validate(registerSchema), async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     let role = "user";
-    if (adminCode && adminCode === process.env.ADMIN_SECRET) role = "admin";
+    if (adminCode && adminCode === process.env.ADMIN_SECRET) {
+      role = "admin";
+    }
 
     const user = await User.create({ name, email, passwordHash, role });
 
     const token = jwt.sign(
-  { id: user._id, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
-
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.status(201).json({
       success: true,
@@ -60,22 +65,22 @@ router.post("/register", validate(registerSchema), async (req, res) => {
 // LOGIN
 // ----------------------
 router.post("/login", validate(loginSchema), async (req, res) => {
-  const { email, password } = req.validatedData;
+  const { email, password } = req.body;   // ✅ FIXED
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ success: false, message: "Invalid credentials" });
+    if (!user)
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
 
     const token = jwt.sign(
-  { id: user._id, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
-
-
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.json({
       success: true,

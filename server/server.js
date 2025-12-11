@@ -16,6 +16,7 @@ import adoptionRoutes from "./routes/adoptions.js";
 
 
 import adminRoutes from "./routes/admin.js";
+import chatbotRoutes from "./routes/chatbot.js";
 
 // ---------------------------
 // Load environment variables
@@ -40,7 +41,7 @@ app.use(helmet());
 app.use(morgan("dev"));
 
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/chatbot", chatbotRoutes);
 
 // ---------------------------
 // CORS
@@ -85,20 +86,19 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/adoptions", adoptionRoutes);
 
 
-// Test route
-app.get("/api/ping", (req, res) => {
-  res.json({ ok: true, message: "PetPal API is running 🎉" });
-});
+// Health check
+app.get("/health", (_req, res) => res.status(200).send("OK"));
+
+// Root GET + HEAD so "/" responds (fixes "Cannot GET /")
+app.route("/")
+  .get((_req, res) => res.send("PetPal API is running!✍️🔥"))
+  .head((_req, res) => res.send("PetPal API is running!✍️🔥"));
+
+// Ensure listen uses PORT
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // ---------------------------
 // Error handler (last)
 // ---------------------------
 app.use(errorHandler);
-
-// ---------------------------
-// Start server
-// ---------------------------
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});

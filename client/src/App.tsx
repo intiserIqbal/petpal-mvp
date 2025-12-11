@@ -1,3 +1,4 @@
+import ChatbotButton from "./components/ChatbotButton";
 import { Routes, Route, Outlet, useLocation } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -25,18 +26,16 @@ import Rehomeconfirm from "./pages/Rehome/Rehomeconfirm";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ApprovedPets from "./pages/Admin/ApprovedPets";
 import RejectedPets from "./pages/Admin/RejectedPets";
-// admin - adoption 
 import AdminPendingAdoptions from "./pages/Admin/AdminPendingAdoptions";
 import ApprovedAdoptions from "./pages/Admin/ApprovedAdoptions";
 import RejectedAdoptions from "./pages/Admin/RejectedAdoptions";
-
 
 // Search pages
 import SearchPets from "./pages/search/SearchPets";
 import PetDetail from "./pages/search/PetDetail";
 
 
-// Layout component — Navbar + Content + Footer
+// ✅ Layout component — Navbar + Content + Footer + Chatbot
 function Layout() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
@@ -50,11 +49,14 @@ function Layout() {
       </div>
 
       {!isAdminRoute && <Footer />}
+
+      {/* ✅ Chatbot always available */}
+      <ChatbotButton />
     </>
   );
 }
 
-// Simple 404 page
+// ✅ Simple 404 page
 function NotFound() {
   return <h2>404 - Page Not Found</h2>;
 }
@@ -63,19 +65,19 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        {/* Default Landing Page */}
+        
+        {/* ✅ Default Landing Page */}
         <Route index element={<Home />} />
 
-        {/* Public Routes */}
+        {/* ✅ Public Routes */}
         <Route path="about" element={<AboutUs />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="search" element={<SearchPets />} />
         <Route path="pet/:id" element={<PetDetail />} />
 
-        {/* User Protected Routes */}
+        {/* ✅ User Protected Routes */}
         <Route element={<PrivateRoute />}>
-          {/* Adopt Pages — now nested inside AdoptForm */}
           <Route path="adopt/*" element={<AdoptForm />} />
 
           {/* Rehome Pages */}
@@ -85,18 +87,17 @@ export default function App() {
           <Route path="rehome/confirm" element={<Rehomeconfirm />} />
         </Route>
 
-        {/* ADMIN ROUTES — Works only if logged in & role = admin */}
+        {/* ✅ Admin Routes */}
         <Route element={<AdminRoute />}>
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="admin/approved" element={<ApprovedPets />} />
           <Route path="admin/rejected" element={<RejectedPets />} />
           <Route path="admin/adoptions" element={<AdminPendingAdoptions />} />
-          <Route path ="admin/adoptions/approved" element ={<ApprovedAdoptions/>}/>
-          
-          <Route path ="admin/adoptions/rejected" element ={<RejectedAdoptions/>}/>
+          <Route path="admin/adoptions/approved" element={<ApprovedAdoptions />} />
+          <Route path="admin/adoptions/rejected" element={<RejectedAdoptions />} />
         </Route>
 
-        {/* 404 fallback */}
+        {/* ✅ 404 fallback */}
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

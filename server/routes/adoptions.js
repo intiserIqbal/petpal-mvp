@@ -1,3 +1,4 @@
+// server/routes/adoptions.js
 import express from "express";
 import AdoptionRequest from "../models/AdoptionRequest.js";
 import Notification from "../models/Notification.js";

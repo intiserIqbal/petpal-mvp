@@ -13,9 +13,10 @@
   </style>
 </head>
 <body>
+
   <h1>🐾 PetPal Backend Tester</h1>
 
-  <!-- Auth -->
+  <!-- AUTH -->
   <div class="box">
     <h2>Register User</h2>
     <button onclick="register()">Register Demo User</button>
@@ -25,17 +26,18 @@
     <pre id="token"></pre>
   </div>
 
-  <!-- Image Upload -->
+  <!-- IMAGE UPLOAD -->
   <div class="box">
-    <h2>Upload Image to Cloudinary</h2>
+    <h2>Upload Image</h2>
     <input type="file" id="imgInput" />
     <button onclick="uploadImage()">Upload</button>
     <pre id="imgUrl"></pre>
-    <button onclick="verifyImage()">Verify Upload (backend)</button>
+
+    <button onclick="verifyImage()">Verify Upload</button>
     <pre id="verify"></pre>
   </div>
 
-  <!-- Create Pet -->
+  <!-- CREATE PET -->
   <div class="box">
     <h2>Create Pet</h2>
     <input id="petName" placeholder="Pet name" /><br>
@@ -44,23 +46,23 @@
     <pre id="createPetRes"></pre>
   </div>
 
-  <!-- List Pets -->
+  <!-- LIST PETS -->
   <div class="box">
     <h2>List Pets</h2>
     <button onclick="listPets()">Load Pets</button>
     <pre id="pets"></pre>
   </div>
 
-  <!-- Update/Delete Pet -->
+  <!-- MODIFY PET -->
   <div class="box">
     <h2>Modify Pet</h2>
     <input id="petId" placeholder="Pet ID" /><br>
-    <button onclick="updatePet()">Update Name to 'Updated Pet'</button>
+    <button onclick="updatePet()">Update Name</button>
     <button onclick="deletePet()">Delete</button>
     <pre id="modifyRes"></pre>
   </div>
 
-  <!-- Reviews -->
+  <!-- REVIEWS -->
   <div class="box">
     <h2>Reviews</h2>
     <input id="revPetId" placeholder="Pet ID" /><br>
@@ -70,15 +72,14 @@
     <pre id="reviews"></pre>
   </div>
 
-  <script src="app.js"></script>
-
-    <!-- Sentiment Analysis -->
+  <!-- SENTIMENT -->
   <div class="box">
     <h2>Sentiment Analysis</h2>
-    <textarea id="sentText" placeholder="Enter text to analyze"></textarea><br>
+    <textarea id="sentText" placeholder="Enter text"></textarea><br>
     <button onclick="analyzeSentiment()">Analyze</button>
     <pre id="sentimentRes"></pre>
   </div>
 
+  <script src="app.js"></script>
 </body>
 </html>
