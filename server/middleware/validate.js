@@ -13,7 +13,7 @@ export default (schema, type = "body") => (req, res, next) => {
       });
     }
 
-    // ✅ Fix: mutate instead of overwrite
+    // ✅ Attach validated data back to req
     if (type === "query") {
       Object.assign(req.query, parsed.data);
     } else {

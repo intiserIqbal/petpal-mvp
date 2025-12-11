@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { api } from "../../services/api";
+import { uploadLocal } from "../../utils/uploadLocal";
 
 export default function Rehomestart() {
   const navigate = useNavigate();
 
-  // Form state
   const [form, setForm] = useState({
     name: "",
     breed: "",
@@ -19,17 +20,19 @@ export default function Rehomestart() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Clean up preview URL on unmount
   useEffect(() => {
-    return () => preview && URL.revokeObjectURL(preview);
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
   }, [preview]);
 
-  // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImage = (e: any) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
@@ -37,51 +40,33 @@ export default function Rehomestart() {
     }
   };
 
-  // Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
 
-    // Validate positive numbers
-    if (Number(form.age) < 0 || Number(form.weight) < 0) {
-      alert("Age and weight must be positive numbers");
+    if (!imageFile) {
+      alert("Please upload an image");
       setLoading(false);
       return;
     }
 
-    const data = new FormData();
-    data.append("name", form.name);
-    data.append("breed", form.breed);
-    data.append("age", form.age.toString());
-    data.append("gender", form.gender);
-    data.append("weight", form.weight.toString());
-    data.append("description", form.description);
-    data.append("medical", form.medical);
-    if (imageFile) data.append("image", imageFile);
-
     try {
-      const res = await fetch("http://localhost:5000/api/pets/rehome", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: data,
+      // ✅ Upload image first
+      const uploadedUrl = await uploadLocal(imageFile);
+
+      // ✅ Submit pet
+      await api.post("/pets", {
+        ...form,
+        age: Number(form.age),
+        weight: Number(form.weight),
+        images: [uploadedUrl],
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("Server error:", text);
-        alert("Server error: " + text);
-        setLoading(false);
-        return;
-      }
-
-      const result = await res.json();
       alert("Pet submitted for admin review!");
       navigate("/rehome/dashboard");
-    } catch (err) {
-      console.error("Network error:", err);
-      alert("Network or server error");
+    } catch (err: any) {
+      console.error(err);
+      alert("Error submitting pet");
     } finally {
       setLoading(false);
     }
@@ -108,7 +93,7 @@ export default function Rehomestart() {
 
           <NavLink to="/rehome/confirm" className="flex flex-col items-center flex-1">
             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">3</div>
-            <span className="text-sm mt-2">confirm</span>
+            <span className="text-sm mt-2">Confirm</span>
           </NavLink>
 
           <div className="h-1 w-40 bg-slate-100 rounded"></div>
@@ -125,76 +110,29 @@ export default function Rehomestart() {
         <h2 className="text-2xl font-semibold text-center mb-6">Rehome Your Pet</h2>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full border rounded-lg p-3"
-            placeholder="Pet Name"
-            required
-          />
-          <input
-            name="breed"
-            value={form.breed}
-            onChange={handleChange}
-            className="w-full border rounded-lg p-3"
-            placeholder="Breed"
-            required
-          />
+          <input name="name" value={form.name} onChange={handleChange} className="w-full border rounded-lg p-3" placeholder="Pet Name" required />
+
+          <input name="breed" value={form.breed} onChange={handleChange} className="w-full border rounded-lg p-3" placeholder="Breed" required />
 
           <div className="grid grid-cols-2 gap-4">
-            <input
-              name="age"
-              type="number"
-              value={form.age}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-3"
-              placeholder="Age"
-            />
-            <select
-              name="gender"
-              value={form.gender}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-3"
-            >
+            <input name="age" type="number" value={form.age} onChange={handleChange} className="w-full border rounded-lg p-3" placeholder="Age" />
+
+            <select name="gender" value={form.gender} onChange={handleChange} className="w-full border rounded-lg p-3">
               <option>Male</option>
               <option>Female</option>
             </select>
           </div>
 
-          <input
-            name="weight"
-            type="number"
-            value={form.weight}
-            onChange={handleChange}
-            className="w-full border rounded-lg p-3"
-            placeholder="Weight in kg"
-          />
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            rows={4}
-            className="w-full border rounded-lg p-3"
-            placeholder="Describe personality, behavior..."
-          ></textarea>
-          <textarea
-            name="medical"
-            value={form.medical}
-            onChange={handleChange}
-            rows={3}
-            className="w-full border rounded-lg p-3"
-            placeholder="Vaccines taken, illness..."
-          ></textarea>
+          <input name="weight" type="number" value={form.weight} onChange={handleChange} className="w-full border rounded-lg p-3" placeholder="Weight in kg" />
 
-          <input type="file" accept="image/*" onChange={handleImage} />
+          <textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full border rounded-lg p-3" placeholder="Describe personality, behavior..." />
+
+          <textarea name="medical" value={form.medical} onChange={handleChange} rows={3} className="w-full border rounded-lg p-3" placeholder="Vaccines taken, illness..." />
+
+          <input type="file" accept="image/*" onChange={handleImage} required />
           {preview && <img src={preview} className="mt-4 w-full h-64 object-cover rounded" />}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-6 py-3 rounded-lg text-white ${loading ? "bg-gray-400" : "bg-blue-600"}`}
-          >
+          <button type="submit" disabled={loading} className={`px-6 py-3 rounded-lg text-white ${loading ? "bg-gray-400" : "bg-blue-600"}`}>
             {loading ? "Submitting..." : "Submit for Admin Review"}
           </button>
         </form>
