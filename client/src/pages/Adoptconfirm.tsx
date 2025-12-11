@@ -46,6 +46,11 @@ export default function AdoptConfirm() {
               <div className="h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center">4</div>
               <span className="text-sm mt-2">Confirm</span>
             </div>
+<div className="h-1 w-40 bg-slate-100 rounded"></div>
+            <Link to="/adopt/notification" className="flex flex-col items-center flex-1">
+              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">5</div>
+              <span className="text-sm mt-2">notification</span>
+            </Link>
 
           </div>
         </div>
@@ -97,7 +102,7 @@ export default function AdoptConfirm() {
           <h2 className="text-lg font-semibold">Thanks For Submitting</h2>
 
           <p className="mt-4 text-sm max-w-2xl mx-auto">
-            The pet's current owner will be sent a link to your profile when 
+            You will be notified when 
             your application has been approved by PetPal.
           </p>
 
@@ -110,7 +115,7 @@ export default function AdoptConfirm() {
           </div>
 
           <Link
-            to="/profile"
+            to="/"
             className="mt-8 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm"
           >
             Go To My Profile

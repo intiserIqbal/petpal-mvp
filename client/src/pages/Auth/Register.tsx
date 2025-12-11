@@ -1,6 +1,6 @@
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { api, setAuthToken } from "../../services/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -10,13 +10,15 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
+    adminCode: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // API handled via services/api.ts (shared axios instance)
+  const API_URL = import.meta.env.VITE_API_URL;
+  const ADMIN_SECRET_CODE = import.meta.env.VITE_ADMIN_SECRET;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -25,62 +27,39 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sending registration data:", formData);
 
-    // Frontend Validation
-    if (!formData.name.trim()) {
-      setError("Name is required");
-      return;
-    }
-    if (formData.name.trim().length < 2) {
-      setError("Name must be at least 2 characters");
-      return;
-    }
-
-    if (!formData.email.trim()) {
-      setError("Email is required");
-      return;
-    }
+    // Frontend validation
+    if (!formData.name.trim()) return setError("Name is required");
+    if (formData.name.trim().length < 2) return setError("Name must be at least 2 characters");
+    if (!formData.email.trim()) return setError("Email is required");
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
-      setError("Email is invalid");
-      return;
-    }
+    if (!emailRegex.test(formData.email.trim())) return setError("Email is invalid");
+    if (!formData.password) return setError("Password is required");
+    if (formData.password.length < 6) return setError("Password must be at least 6 characters");
 
-    if (!formData.password) {
-      setError("Password is required");
-      return;
-    }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
+    // Determine role
+    let role = "user";
+    if (formData.adminCode.trim() === ADMIN_SECRET_CODE) role = "admin";
 
     try {
       setLoading(true);
       setError("");
       setSuccess("");
 
-      const res = await api.post("/auth/register", {
+      const res = await axios.post(`${API_URL}/api/auth/register`, {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
+        adminCode: formData.adminCode.trim(),
       });
 
-      // Save token after successful registration
-      if (res.data.success && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        setAuthToken(res.data.token);
-        window.dispatchEvent(new Event("storage"));
-      }
+      setSuccess(`Registration successful!${role === "admin" ? " You are now an admin." : ""}`);
 
-      setSuccess("Registration successful!");
-
-      // Redirect user after registration
       const redirectTo = searchParams.get("redirect") || "/";
       setTimeout(() => {
         navigate(`/login?redirect=${redirectTo}`, { replace: true });
       }, 600);
+
     } catch (err: any) {
       console.log("Backend error:", err.response?.data);
       setError(err.response?.data?.message || "Registration failed");
@@ -90,17 +69,19 @@ export default function Register() {
   };
 
   return (
-    <div className="w-[900px] flex mx-auto border mt-10 rounded-xl">
-      {/* Left Image */}
-      <div className="w-1/3 flex flex-col items-center justify-center">
-        <img src="/dog.png" alt="Puppy" className="w-72" />
-        <p className="text-xl font-semibold mt-4">Join Us Today</p>
+    <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row border mt-10 rounded-xl overflow-hidden shadow-md">
+
+      {/* Left Image Section */}
+      <div className="w-full md:w-1/2 lg:w-1/3 bg-gray-50 flex flex-col items-center justify-center p-6">
+        <img src="/dog.png" alt="Puppy" className="w-48 md:w-60" />
+        <p className="text-xl font-semibold mt-4 text-gray-700">Join Us Today</p>
       </div>
 
-      {/* Registration Form */}
-      <div className="w-1/2 flex items-center justify-center">
-        <form onSubmit={handleSubmit} className="w-96 space-y-4">
-          <h2 className="text-3xl font-bold text-center mb-6">
+      {/* Form Section */}
+      <div className="w-full md:w-1/2 lg:w-2/3 flex items-center justify-center p-6 md:p-10">
+        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+
+          <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
             Create an Account
           </h2>
 
@@ -110,9 +91,7 @@ export default function Register() {
             placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full border rounded-lg px-4 py-3 ${
-              !formData.name && error.includes("Name") ? "border-red-500" : ""
-            }`}
+            className="w-full border rounded-lg px-4 py-3 focus:ring focus:ring-blue-300 outline-none"
           />
 
           <input
@@ -121,22 +100,25 @@ export default function Register() {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
-            className={`w-full border rounded-lg px-4 py-3 ${
-              !formData.email && error.includes("Email") ? "border-red-500" : ""
-            }`}
+            className="w-full border rounded-lg px-4 py-3 focus:ring focus:ring-blue-300 outline-none"
           />
 
           <input
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Password (min 6 characters)"
             value={formData.password}
             onChange={handleChange}
-            className={`w-full border rounded-lg px-4 py-3 ${
-              formData.password.length < 6 && error.includes("Password")
-                ? "border-red-500"
-                : ""
-            }`}
+            className="w-full border rounded-lg px-4 py-3 focus:ring focus:ring-blue-300 outline-none"
+          />
+
+          <input
+            type="text"
+            name="adminCode"
+            placeholder="Admin Code (optional)"
+            value={formData.adminCode}
+            onChange={handleChange}
+            className="w-full border rounded-lg px-4 py-3 focus:ring focus:ring-blue-300 outline-none"
           />
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -145,7 +127,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
           >
             {loading ? "Registering..." : "Register"}
           </button>
@@ -159,8 +141,10 @@ export default function Register() {
               Login Here
             </Link>
           </p>
+
         </form>
       </div>
+
     </div>
   );
 }

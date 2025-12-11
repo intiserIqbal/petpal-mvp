@@ -1,205 +1,201 @@
 import express from "express";
-import { protect } from "../middleware/auth.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import jwt from "jsonwebtoken";
 import Pet from "../models/Pet.js";
-import Review from "../models/Review.js";
+import Notification from "../models/Notification.js";
 
 const router = express.Router();
 
-// ------------------------------
-// POST /api/pets (Create listing)
-// ------------------------------
-router.post("/", protect, async (req, res) => {
-  try {
-    const {
-      title,
-      species,
-      age,
-      location,
-      description,
-      images = [], // array of strings (filenames/URLs)
-      sentiment, // optional string: "POSITIVE" | "NEGATIVE" | "NEUTRAL"
-    } = req.body;
+// ---------------------------
+// Multer upload config
+// ---------------------------
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
-    const pet = new Pet({
-      title,
-      species,
-      age,
-      location,
-      description,
-      images,
-      sentiment,
-      owner: req.user._id,
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/\s+/g, "-");
+    cb(null, `${Date.now()}-${safeName}`);
+  },
+});
+const upload = multer({ storage });
+
+// ---------------------------
+// Middleware
+// ---------------------------
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.id;
+    req.userRole = decoded.role;
+    next();
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.userRole !== "admin")
+    return res.status(403).json({ message: "Access denied" });
+  next();
+};
+
+const sanitize = (str) => (typeof str === "string" ? str.replace(/"/g, "") : str);
+
+// ---------------------------
+// USER ROUTES
+// ---------------------------
+
+// POST rehome pet
+router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => {
+  try {
+    const newPet = new Pet({
+      owner: req.userId,
+      name: sanitize(req.body.name),
+      breed: sanitize(req.body.breed),
+      age: req.body.age,
+      gender: sanitize(req.body.gender),
+      weight: req.body.weight,
+      description: sanitize(req.body.description),
+      medical: sanitize(req.body.medical),
+      status: "pending",
+      image: req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null,
     });
 
-    // Optionally run sentiment analysis (non-blocking)
-    try {
-      if (description && description.trim().length > 0) {
-        const response = await fetch(
-          `${req.protocol}://${req.get("host")}/api/analyze-sentiment`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: req.headers.authorization,
-            },
-            body: JSON.stringify({ text: description }),
-          }
-        );
-        if (response.ok) {
-          const json = await response.json();
-          if (json?.sentiment) {
-            pet.sentiment = json.sentiment; // store plain string
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("Sentiment call failed (non-blocking):", err.message || err);
-    }
-
-    const saved = await pet.save();
-    await saved.populate("owner", "name");
-    return res.status(201).json(saved); // return pet directly
+    await newPet.save();
+    res.status(201).json(newPet);
   } catch (err) {
-    console.error("POST /api/pets error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    res.status(500).json({ message: err.message });
   }
 });
 
-// ------------------------------
-// PUT /api/pets/:id (Update)
-// ------------------------------
-router.put("/:id", protect, async (req, res) => {
+// GET my pets
+router.get("/mine", verifyToken, async (req, res) => {
+  try {
+    const pets = await Pet.find({ owner: req.userId });
+    res.json({ pets });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE a pet
+router.delete("/:id", verifyToken, async (req, res) => {
+  try {
+    const pet = await Pet.findOne({ _id: req.params.id, owner: req.userId });
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
+
+    if (pet.image) {
+      const filePath = path.join(uploadDir, path.basename(pet.image));
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    await Pet.deleteOne({ _id: req.params.id });
+    res.json({ message: "Pet deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ---------------------------
+// ADMIN ROUTES
+// ---------------------------
+
+// GET pending pets
+router.get("/pending", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const pets = await Pet.find({ status: "pending" }).populate("owner", "name email");
+    res.json({ pets });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Approve / reject pet
+router.put("/update/:id", verifyToken, isAdmin, async (req, res) => {
+  const { status } = req.body;
+  if (!["approved", "rejected"].includes(status))
+    return res.status(400).json({ message: "Invalid status" });
+
   try {
     const pet = await Pet.findById(req.params.id);
-    if (!pet) return res.status(404).json({ success: false, message: "Pet not found" });
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
 
-    // ownership check
-    if (pet.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "Not authorized" });
-    }
+    pet.status = status;
+    await pet.save();
 
-    const {
-      title,
-      species,
-      age,
-      location,
-      description,
-      images,
-      sentiment,
-    } = req.body;
+    // ✅ Rehome notification
+    await Notification.create({
+      user: pet.owner,
+      message: `Your rehome request for ${pet.name} has been ${status}.`,
+      type: "rehome",
+    });
 
-    if (title !== undefined) pet.title = title;
-    if (species !== undefined) pet.species = species;
-    if (age !== undefined) pet.age = age;
-    if (location !== undefined) pet.location = location;
-    if (description !== undefined) pet.description = description;
-    if (images !== undefined) pet.images = images; // overwrite with provided array
-    if (sentiment !== undefined) pet.sentiment = sentiment;
-
-    // Re-run sentiment if description changed
-    if (req.body.description) {
-      try {
-        const response = await fetch(
-          `${req.protocol}://${req.get("host")}/api/analyze-sentiment`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: req.headers.authorization,
-            },
-            body: JSON.stringify({ text: req.body.description }),
-          }
-        );
-        if (response.ok) {
-          const json = await response.json();
-          if (json?.sentiment) {
-            pet.sentiment = json.sentiment; // store plain string
-          }
-        }
-      } catch (err) {
-        console.warn("Re-sentiment failed (non-blocking):", err.message || err);
-      }
-    }
-
-    const updated = await pet.save();
-    await updated.populate("owner", "name");
-    return res.json(updated); // return pet directly
+    res.json({ success: true, message: `Pet ${status}` });
   } catch (err) {
-    console.error("PUT /api/pets/:id error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    res.status(500).json({ message: err.message });
   }
 });
 
-// ------------------------------
-// GET /api/pets
-// ------------------------------
-router.get("/", async (req, res) => {
+// ---------------------------
+// PUBLIC ROUTES
+// ---------------------------
+
+// Get all approved pets
+router.get("/approved", async (req, res) => {
   try {
-    const page = parseInt(req.query.page || "1");
-    const limit = parseInt(req.query.limit || "10");
-    const skip = (page - 1) * limit;
-
-    const query = {};
-    if (req.query.q) {
-      query.$or = [
-        { title: { $regex: req.query.q, $options: "i" } },
-        { species: { $regex: req.query.q, $options: "i" } },
-        { location: { $regex: req.query.q, $options: "i" } },
-      ];
-    }
-
-    const [pets, total] = await Promise.all([
-      Pet.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate("owner", "name"),
-      Pet.countDocuments(query),
-    ]);
-
-    res.json({ pets, total, hasMore: skip + pets.length < total });
+    const pets = await Pet.find({ status: "approved" });
+    res.json({ pets });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch pets" });
+    res.status(500).json({ message: err.message });
   }
 });
 
-// GET /api/pets/:id
+// Search approved pets
+router.get("/search", async (req, res) => {
+  const q = req.query.query || "";
+  const regex = new RegExp(q, "i");
+  try {
+    const pets = await Pet.find({
+      status: "approved",
+      $or: [{ name: { $regex: regex } }, { breed: { $regex: regex } }, { category: { $regex: regex } }],
+    });
+    res.json({ pets });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET rehome notifications
+router.get("/notifications", verifyToken, async (req, res) => {
+  const notifications = await Notification.find({ user: req.userId, type: "rehome" }).sort({ createdAt: -1 });
+  res.json({ notifications });
+});
+
+// Mark rehome notifications as read
+router.put("/notifications/mark-read", verifyToken, async (req, res) => {
+  try {
+    await Notification.updateMany({ user: req.userId, type: "rehome" }, { $set: { read: true } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to mark notifications as read" });
+  }
+});
+
+// Get a pet by ID — must come last
 router.get("/:id", async (req, res) => {
   try {
-    const pet = await Pet.findById(req.params.id).populate("owner", "name");
-    if (!pet) return res.status(404).json({ message: "Pet not found" });
-    res.json(pet);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch pet" });
-  }
-});
-
-// DELETE /api/pets/:id
-router.delete("/:id", protect, async (req, res) => {
-  try {
     const pet = await Pet.findById(req.params.id);
     if (!pet) return res.status(404).json({ message: "Pet not found" });
-    if (pet.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    await Review.deleteMany({ pet: pet._id });
-    await Pet.deleteOne({ _id: pet._id }); // no Cloudinary deletion
-    res.json({ message: "Pet deleted" });
+    res.json({ pet });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to delete pet" });
-  }
-});
-
-// GET /api/pets/:id/reviews  (needed by client)
-router.get("/:id/reviews", async (req, res) => {
-  try {
-    const reviews = await Review.find({ pet: req.params.id })
-      .sort({ createdAt: -1 })
-      .populate("user", "name");
-    res.json(reviews);
-  } catch (err) {
-    console.error("GET /api/pets/:id/reviews error:", err);
-    res.status(500).json({ message: "Failed to fetch reviews" });
+    res.status(500).json({ message: err.message });
   }
 });
 

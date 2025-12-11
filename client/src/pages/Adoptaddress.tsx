@@ -1,7 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom";
 
-export default function AdoptAddress() {
+export default function AdoptAddress({ address, setAddress }) {
   const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setAddress({ ...address, [e.target.name]: e.target.value });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -11,10 +15,7 @@ export default function AdoptAddress() {
           <div className="flex items-center justify-between">
 
             {/* Step 1 */}
-            <NavLink
-              to="/adopt"
-              className="flex flex-col items-center flex-1"
-            >
+            <NavLink to="/adopt" className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
                 1
               </div>
@@ -34,10 +35,7 @@ export default function AdoptAddress() {
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 3 */}
-            <NavLink
-              to="/adopt/home"
-              className="flex flex-col items-center flex-1"
-            >
+            <NavLink to="/adopt/home-info" className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                 3
               </div>
@@ -47,15 +45,18 @@ export default function AdoptAddress() {
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 4 */}
-            <NavLink
-              to="/adopt/confirm"
-              className="flex flex-col items-center flex-1"
-            >
+            <NavLink to="/adopt/confirm" className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                 4
               </div>
               <span className="text-sm mt-2">Confirm</span>
             </NavLink>
+ <div className="h-1 w-40 bg-slate-100 rounded"></div>
+<NavLink to="/adopt/notification" className="flex flex-col items-center flex-1">
+              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">5</div>
+              <span className="text-sm mt-2">notification</span>
+            </NavLink>
+
 
           </div>
         </div>
@@ -69,47 +70,80 @@ export default function AdoptAddress() {
 
         <form className="space-y-6">
 
-          {/* Address fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium">Address Line 1 *</label>
-              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Line1" />
+              <input
+                type="text"
+                name="line1"
+                value={address.line1}
+                onChange={handleChange}
+                className="mt-1 w-full border px-3 py-2 rounded"
+                placeholder="Line1"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Address Line 2 *</label>
-              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Line2" />
+              <label className="block text-sm font-medium">Address Line 2</label>
+              <input
+                type="text"
+                name="line2"
+                value={address.line2}
+                onChange={handleChange}
+                className="mt-1 w-full border px-3 py-2 rounded"
+                placeholder="Line2"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium">Postcode *</label>
-              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Postcode" />
+              <input
+                type="text"
+                name="postcode"
+                value={address.postcode}
+                onChange={handleChange}
+                className="mt-1 w-full border px-3 py-2 rounded"
+                placeholder="Postcode"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium">Town *</label>
-              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Town/City" />
+              <input
+                type="text"
+                name="town"
+                value={address.town}
+                onChange={handleChange}
+                className="mt-1 w-full border px-3 py-2 rounded"
+                placeholder="Town/City"
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium">Telephone Number *</label>
-              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Landline Telephone" />
+              <label className="block text-sm font-medium">District</label>
+              <input
+                type="text"
+                name="district"
+                value={address.district}
+                onChange={handleChange}
+                className="mt-1 w-full border px-3 py-2 rounded"
+                placeholder="District"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Mobile</label>
-              <input type="text" className="mt-1 w-full border px-3 py-2 rounded" placeholder="Mobile" />
+              <label className="block text-sm font-medium">Mobile *</label>
+              <input
+                type="text"
+                name="mobile"
+                value={address.mobile}
+                onChange={handleChange}
+                className="mt-1 w-full border px-3 py-2 rounded"
+                placeholder="Mobile"
+              />
             </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button type="button" className="bg-blue-500 text-white px-4 py-2 rounded">
-              Send Verification Code
-            </button>
-
-            <input type="text" className="border px-3 py-2 rounded w-40" placeholder="Verification Code" />
           </div>
 
           <div className="flex justify-between mt-6">
