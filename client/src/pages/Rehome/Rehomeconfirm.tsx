@@ -34,18 +34,18 @@ export default function Rehomeconfirm() {
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 3 */}
-            <Link to="/rehome/notification" className="flex flex-col items-center flex-1">
+            <Link to="/rehome/confirm" className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">3</div>
-              <span className="text-sm mt-2">notification</span>
+              <span className="text-sm mt-2">confirm</span>
             </Link>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 4 (ACTIVE) */}
-            <div className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">4</div>
-              <span className="text-sm mt-2">Confirm</span>
-            </div>
+           <Link to="/rehome/notification" className="flex flex-col items-center flex-1">
+              <div className="h-10 w-10 rounded-full bg-gray-400 text-white flex items-center justify-center">3</div>
+              <span className="text-sm mt-2">notification</span>
+            </Link>
 
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function Rehomeconfirm() {
           <h2 className="text-lg font-semibold">Thanks For Submitting</h2>
 
           <p className="mt-4 text-sm max-w-2xl mx-auto">
-            The pet's current owner will be sent a link to your profile when 
+           You will be notified when 
             your application has been approved by PetPal.
           </p>
 

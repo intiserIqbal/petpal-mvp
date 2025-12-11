@@ -59,14 +59,14 @@ export default function Rehomedashboard() {
             <span className="text-sm mt-2">Dashboard</span>
           </div>
           <div className="h-1 w-40 bg-slate-100 rounded"></div>
-          <NavLink to="/rehome/notification" className="flex flex-col items-center flex-1">
+          <NavLink to="/rehome/confirm" className="flex flex-col items-center flex-1">
             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">3</div>
-            <span className="text-sm mt-2">Notification</span>
+            <span className="text-sm mt-2">confirm</span>
           </NavLink>
           <div className="h-1 w-40 bg-slate-100 rounded"></div>
-          <NavLink to="/rehome/confirm" className="flex flex-col items-center flex-1">
+          <NavLink to="/rehome/notification" className="flex flex-col items-center flex-1">
             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">4</div>
-            <span className="text-sm mt-2">Confirm</span>
+            <span className="text-sm mt-2">notification</span>
           </NavLink>
         </div>
       </div>

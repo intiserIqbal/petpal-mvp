@@ -13,10 +13,7 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 
 // Adopt pages
-import AdoptStart from "./pages/Adoptstart";
-import AdoptAddress from "./pages/Adoptaddress";
-import Adopthome from "./pages/Adopthome";
-import Adoptconfirm from "./pages/Adoptconfirm";
+import AdoptForm from "./pages/AdoptForm";
 
 // Rehome pages
 import Rehomestart from "./pages/Rehome/Rehomestart";
@@ -26,31 +23,32 @@ import Rehomeconfirm from "./pages/Rehome/Rehomeconfirm";
 
 // Admin pages
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-
-// If you have more admin pages, like Approved or Rejected, import them here:
- import ApprovedPets from "./pages/Admin/ApprovedPets";
+import ApprovedPets from "./pages/Admin/ApprovedPets";
 import RejectedPets from "./pages/Admin/RejectedPets";
-//search
+// admin - adoption 
+import AdminPendingAdoptions from "./pages/Admin/AdminPendingAdoptions";
+import ApprovedAdoptions from "./pages/Admin/ApprovedAdoptions";
+import RejectedAdoptions from "./pages/Admin/RejectedAdoptions";
+
+
+// Search pages
 import SearchPets from "./pages/search/SearchPets";
 import PetDetail from "./pages/search/PetDetail";
+
 
 // Layout component — Navbar + Content + Footer
 function Layout() {
   const location = useLocation();
-
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <>
-      {/* if admin route -> AdminNavbar else main Navbar */}
       {isAdminRoute ? <AdminNavbar /> : <Navbar />}
 
-      {/* Main content area */}
       <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
         <Outlet />
       </div>
 
-      {/* Hide footer only on admin routes */}
       {!isAdminRoute && <Footer />}
     </>
   );
@@ -64,9 +62,7 @@ function NotFound() {
 export default function App() {
   return (
     <Routes>
-      {/* Wrap everything in main layout */}
       <Route path="/" element={<Layout />}>
-
         {/* Default Landing Page */}
         <Route index element={<Home />} />
 
@@ -79,12 +75,8 @@ export default function App() {
 
         {/* User Protected Routes */}
         <Route element={<PrivateRoute />}>
-
-          {/* Adopt Pages */}
-          <Route path="adopt" element={<AdoptStart />} />
-          <Route path="adopt/address" element={<AdoptAddress />} />
-          <Route path="adopt/home" element={<Adopthome />} />
-          <Route path="adopt/confirm" element={<Adoptconfirm />} />
+          {/* Adopt Pages — now nested inside AdoptForm */}
+          <Route path="adopt/*" element={<AdoptForm />} />
 
           {/* Rehome Pages */}
           <Route path="rehome" element={<Rehomestart />} />
@@ -96,9 +88,12 @@ export default function App() {
         {/* ADMIN ROUTES — Works only if logged in & role = admin */}
         <Route element={<AdminRoute />}>
           <Route path="admin" element={<AdminDashboard />} />
-          {/* Add more admin routes if needed */}
-           <Route path="admin/approved" element={<ApprovedPets />} /> 
-           <Route path="admin/rejected" element={<RejectedPets />} />
+          <Route path="admin/approved" element={<ApprovedPets />} />
+          <Route path="admin/rejected" element={<RejectedPets />} />
+          <Route path="admin/adoptions" element={<AdminPendingAdoptions />} />
+          <Route path ="admin/adoptions/approved" element ={<ApprovedAdoptions/>}/>
+          
+          <Route path ="admin/adoptions/rejected" element ={<RejectedAdoptions/>}/>
         </Route>
 
         {/* 404 fallback */}

@@ -46,12 +46,10 @@ const isAdmin = (req, res, next) => {
   next();
 };
 
-// Sanitize helper
-const sanitize = (str) =>
-  typeof str === "string" ? str.replace(/"/g, "") : str;
+const sanitize = (str) => (typeof str === "string" ? str.replace(/"/g, "") : str);
 
 // ---------------------------
-// PUBLIC / USER ROUTES
+// USER ROUTES
 // ---------------------------
 
 // POST rehome pet
@@ -67,9 +65,7 @@ router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => 
       description: sanitize(req.body.description),
       medical: sanitize(req.body.medical),
       status: "pending",
-      image: req.file
-        ? `http://localhost:5000/uploads/${req.file.filename}`
-        : null,
+      image: req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null,
     });
 
     await newPet.save();
@@ -79,7 +75,7 @@ router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => 
   }
 });
 
-// GET my pets (for logged-in user)
+// GET my pets
 router.get("/mine", verifyToken, async (req, res) => {
   try {
     const pets = await Pet.find({ owner: req.userId });
@@ -89,7 +85,7 @@ router.get("/mine", verifyToken, async (req, res) => {
   }
 });
 
-// DELETE a pet (by owner)
+// DELETE a pet
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
     const pet = await Pet.findOne({ _id: req.params.id, owner: req.userId });
@@ -111,7 +107,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 // ADMIN ROUTES
 // ---------------------------
 
-// GET pending pets (for admin)
+// GET pending pets
 router.get("/pending", verifyToken, isAdmin, async (req, res) => {
   try {
     const pets = await Pet.find({ status: "pending" }).populate("owner", "name email");
@@ -121,7 +117,7 @@ router.get("/pending", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Approve / reject pet (admin)
+// Approve / reject pet
 router.put("/update/:id", verifyToken, isAdmin, async (req, res) => {
   const { status } = req.body;
   if (!["approved", "rejected"].includes(status))
@@ -134,9 +130,11 @@ router.put("/update/:id", verifyToken, isAdmin, async (req, res) => {
     pet.status = status;
     await pet.save();
 
+    // ✅ Rehome notification
     await Notification.create({
       user: pet.owner,
       message: `Your rehome request for ${pet.name} has been ${status}.`,
+      type: "rehome",
     });
 
     res.json({ success: true, message: `Pet ${status}` });
@@ -146,7 +144,7 @@ router.put("/update/:id", verifyToken, isAdmin, async (req, res) => {
 });
 
 // ---------------------------
-// PUBLIC LIST FETCH ROUTES
+// PUBLIC ROUTES
 // ---------------------------
 
 // Get all approved pets
@@ -159,18 +157,14 @@ router.get("/approved", async (req, res) => {
   }
 });
 
-// Search (approved pets) by query
+// Search approved pets
 router.get("/search", async (req, res) => {
   const q = req.query.query || "";
   const regex = new RegExp(q, "i");
   try {
     const pets = await Pet.find({
       status: "approved",
-      $or: [
-        { name: { $regex: regex } },
-        { breed: { $regex: regex } },
-        { category: { $regex: regex } },
-      ],
+      $or: [{ name: { $regex: regex } }, { breed: { $regex: regex } }, { category: { $regex: regex } }],
     });
     res.json({ pets });
   } catch (err) {
@@ -178,7 +172,23 @@ router.get("/search", async (req, res) => {
   }
 });
 
-// Get a pet by ID — **this must come last** to avoid route conflicts
+// GET rehome notifications
+router.get("/notifications", verifyToken, async (req, res) => {
+  const notifications = await Notification.find({ user: req.userId, type: "rehome" }).sort({ createdAt: -1 });
+  res.json({ notifications });
+});
+
+// Mark rehome notifications as read
+router.put("/notifications/mark-read", verifyToken, async (req, res) => {
+  try {
+    await Notification.updateMany({ user: req.userId, type: "rehome" }, { $set: { read: true } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to mark notifications as read" });
+  }
+});
+
+// Get a pet by ID — must come last
 router.get("/:id", async (req, res) => {
   try {
     const pet = await Pet.findById(req.params.id);

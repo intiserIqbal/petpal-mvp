@@ -42,6 +42,14 @@ export default function AdoptStart() {
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">4</div>
               <span className="text-sm mt-2">Confirm</span>
             </NavLink>
+            <div className="h-1 w-40 bg-slate-100 rounded"></div>
+<NavLink to="/adopt/notification" className="flex flex-col items-center flex-1">
+              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">5</div>
+              <span className="text-sm mt-2">notification</span>
+            </NavLink>
+
+
+
           </div>
         </div>
       </div>
@@ -101,6 +109,9 @@ export default function AdoptStart() {
           >
             start
           </Link>
+
+
+          
         </div>
       </main>
     </>

@@ -12,6 +12,8 @@ import authRoutes from "./routes/auth.js";
 import petRoutes from "./routes/pets.js";
 import appointmentRoutes from "./routes/appointments.js";
 import { connectDB } from "./db/connect.js";
+import adoptionRoutes from "./routes/adoptions.js";
+
 
 import adminRoutes from "./routes/admin.js";
 
@@ -33,9 +35,10 @@ const app = express();
 // ---------------------------
 // Security & middleware
 // ---------------------------
+app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(express.json());
+
 app.use("/api/admin", adminRoutes);
 
 
@@ -79,6 +82,8 @@ app.get("/uploads/:filename", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/adoptions", adoptionRoutes);
+
 
 // Test route
 app.get("/api/ping", (req, res) => {

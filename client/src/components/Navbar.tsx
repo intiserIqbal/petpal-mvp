@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 interface User {
   name: string;
   avatar?: string;
-  role?: string; // "admin" or "user"
+  role?: string;
 }
 
 export default function Navbar() {
@@ -19,9 +19,12 @@ export default function Navbar() {
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const [notifCount, setNotifCount] = useState(0);            // Rehome notifications
+  const [adoptNotifCount, setAdoptNotifCount] = useState(0);  // Adoption notifications
+
+  // Sync storage changes
   useEffect(() => {
     const handler = () => {
       setToken(localStorage.getItem("token"));
@@ -32,6 +35,36 @@ export default function Navbar() {
     window.addEventListener("storage", handler);
     return () => window.removeEventListener("storage", handler);
   }, []);
+
+  // 🔔 Fetch REHOME notification count
+  useEffect(() => {
+    if (!token) return;
+
+    fetch("http://localhost:5000/api/pets/notifications", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        const unread = data.notifications?.filter((n: any) => !n.read).length || 0;
+        setNotifCount(unread);
+      })
+      .catch(() => setNotifCount(0));
+  }, [token]);
+
+  // 🟣 Fetch ADOPTION notification count
+  useEffect(() => {
+    if (!token) return;
+
+    fetch("http://localhost:5000/api/adoptions/notifications", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        const unread = data.notifications?.filter((n: any) => !n.read).length || 0;
+        setAdoptNotifCount(unread);
+      })
+      .catch(() => setAdoptNotifCount(0));
+  }, [token]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -75,7 +108,6 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // 🔍 Fetch live search results
   const fetchSearchResults = async (value: string) => {
     setSearch(value);
 
@@ -152,13 +184,12 @@ export default function Navbar() {
 
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-500"
+              className="absolute right-2 mt-5 -translate-y-1/2 text-gray-500 hover:text-blue-500"
             >
               🔍
             </button>
           </form>
 
-          {/* 🔽 Live search dropdown */}
           {searchResults.length > 0 && (
             <div className="absolute bg-white shadow-md border rounded-lg mt-2 w-56 max-h-64 overflow-auto z-50">
               {searchResults.map((pet) => (
@@ -175,10 +206,35 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Right Panel */}
+        {/* Right panel */}
         <div className="flex items-center gap-4">
-          <button className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700" title="Notifications">
+          
+          {/* 🔔 Rehome Notifications */}
+          <button
+            onClick={() => navigate("/rehome/notification")}
+            className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
+            title="Rehome Notifications"
+          >
             🔔
+            {notifCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                {notifCount}
+              </span>
+            )}
+          </button>
+
+          {/* 🟣 Adoption Notifications */}
+          <button
+            onClick={() => navigate("/adopt/notification")}
+            className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
+            title="Adoption Notifications"
+          >
+            🐾
+            {adoptNotifCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                {adoptNotifCount}
+              </span>
+            )}
           </button>
 
           <div className="relative" ref={dropdownRef}>
@@ -231,6 +287,7 @@ export default function Navbar() {
                         </button>
                       </>
                     )}
+
                     {isAdmin && (
                       <button
                         onClick={() => handlePrivateNav("/admin")}
@@ -239,7 +296,9 @@ export default function Navbar() {
                         Admin
                       </button>
                     )}
+
                     <div className="border-t mt-1" />
+
                     <button
                       onClick={logout}
                       className="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-600/20"
@@ -266,18 +325,6 @@ export default function Navbar() {
                       className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
                     >
                       Register
-                    </button>
-                    <button
-                      onClick={() => handlePrivateNav("/adopt")}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    >
-                      Adopt
-                    </button>
-                    <button
-                      onClick={() => handlePrivateNav("/rehome")}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    >
-                      Rehome
                     </button>
                   </>
                 )}
