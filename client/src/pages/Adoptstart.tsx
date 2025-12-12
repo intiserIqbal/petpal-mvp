@@ -1,8 +1,16 @@
 import { NavLink, Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+// User type
 type UserType = { firstName: string; lastName: string; email: string };
-type PetType = { name: string; image?: string; breed?: string };
+
+// Pet type extended to handle both single image and multiple images
+type PetType = {
+  name: string;
+  breed?: string;
+  image?: string;
+  images?: string[];
+};
 
 interface Props {
   pet?: PetType | null;
@@ -65,12 +73,14 @@ export default function AdoptStart({ pet }: Props) {
         {pet && (
           <div className="p-6 shadow rounded-xl bg-white flex items-center gap-4">
             <img
-  src={Array.isArray(pet.images) && pet.images.length > 0
-        ? pet.images[0]
-        : pet.image || "/placeholder.png"}
-  alt={pet.name}
-  className="w-28 h-28 object-cover rounded-full"
-/>
+              src={
+                Array.isArray(pet.images) && pet.images.length > 0
+                  ? pet.images[0]
+                  : pet.image || "/placeholder.png"
+              }
+              alt={pet.name}
+              className="w-28 h-28 object-cover rounded-full"
+            />
 
             <div>
               <h2 className="text-xl font-semibold">{pet.name}</h2>

@@ -6,13 +6,42 @@ import Adoptconfirm from "./Adoptconfirm";
 import AdoptStart from "./Adoptstart";
 import Adoptmsg from "./Adoptmsg";
 
+// ✅ Exported types
+export type PetType = {
+  name: string;
+  image?: string;
+  images?: string[];
+  breed?: string;
+  age?: number;
+  gender?: string;
+  weight?: number;
+  description?: string;
+};
+
+export type AddressType = {
+  line1: string;
+  line2: string;
+  postcode: string;
+  town: string;
+  district: string;
+  mobile: string;
+};
+
+export type HomeInfoType = {
+  spaceAvailable: string;
+  sleepingPlace: string;
+  ownOrRent: string;
+  petExperience: string;
+  hasFence: string;
+};
+
 export default function AdoptForm() {
   const [searchParams] = useSearchParams();
-  const petId = searchParams.get("petId");
+  const petId: string | null = searchParams.get("petId");
 
-  const [pet, setPet] = useState<any>(null);
+  const [pet, setPet] = useState<PetType | null>(null);
 
-  const [address, setAddress] = useState({
+  const [address, setAddress] = useState<AddressType>({
     line1: "",
     line2: "",
     postcode: "",
@@ -21,7 +50,7 @@ export default function AdoptForm() {
     mobile: "",
   });
 
-  const [homeInfo, setHomeInfo] = useState({
+  const [homeInfo, setHomeInfo] = useState<HomeInfoType>({
     spaceAvailable: "",
     sleepingPlace: "",
     ownOrRent: "",
@@ -31,7 +60,6 @@ export default function AdoptForm() {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // ✅ Fetch selected pet info
   useEffect(() => {
     if (!petId) return;
 
@@ -53,14 +81,19 @@ export default function AdoptForm() {
       <Route index element={<AdoptStart pet={pet} />} />
       <Route
         path="address"
-        element={<AdoptAddress pet={pet} petId={petId} address={address} setAddress={setAddress} />}
+        element={
+          <AdoptAddress
+            petId={petId}
+            address={address}
+            setAddress={setAddress}
+          />
+        }
       />
       <Route
         path="home-info"
         element={
           <Adopthome
-            pet={pet}
-            petId={petId}
+            petId={petId ?? undefined}
             homeInfo={homeInfo}
             setHomeInfo={setHomeInfo}
             address={address}
@@ -69,7 +102,13 @@ export default function AdoptForm() {
       />
       <Route
         path="confirm"
-        element={<Adoptconfirm pet={pet} address={address} homeInfo={homeInfo} />}
+        element={
+          <Adoptconfirm
+            pet={pet}
+            address={address}
+            homeInfo={homeInfo}
+          />
+        }
       />
       <Route path="notification" element={<Adoptmsg />} />
     </Routes>

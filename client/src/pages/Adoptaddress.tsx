@@ -1,9 +1,40 @@
 import { NavLink, useNavigate } from "react-router-dom";
 
-export default function AdoptAddress({ petId, address, setAddress }) {
+// Pet type
+export type PetType = {
+  name: string;
+  image?: string;
+  images?: string[];
+  breed?: string;
+  age?: number;
+  gender?: string;
+  weight?: number;
+  description?: string;
+};
+
+// Address type
+export type AddressType = {
+  line1: string;
+  line2: string;
+  postcode: string;
+  town: string;
+  district: string;
+  mobile: string;
+};
+
+// Props type
+interface AdoptAddressProps {
+  pet?: PetType | null;  // optional, allows passing pet
+  petId: string | null;
+  address: AddressType;
+  setAddress: React.Dispatch<React.SetStateAction<AddressType>>;
+}
+
+export default function AdoptAddress({  petId, address, setAddress }: AdoptAddressProps) {
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  // Event typed
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAddress({ ...address, [e.target.name]: e.target.value });
   };
 
@@ -14,34 +45,26 @@ export default function AdoptAddress({ petId, address, setAddress }) {
         <div className="max-w-5xl mx-auto py-6">
           <div className="flex items-center justify-between">
             <NavLink to="/adopt" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
-                1
-              </div>
+              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">1</div>
               <span className="text-sm mt-2">Start</span>
             </NavLink>
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 2 - Current Page */}
             <div className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
-                2
-              </div>
+              <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">2</div>
               <span className="text-sm mt-2">Address</span>
             </div>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
             <NavLink to={`/adopt/home-info?petId=${petId}`} className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                3
-              </div>
+              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">3</div>
               <span className="text-sm mt-2">Home</span>
             </NavLink>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
             <NavLink to={`/adopt/confirm?petId=${petId}`} className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                4
-              </div>
+              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">4</div>
               <span className="text-sm mt-2">Confirm</span>
             </NavLink>
 

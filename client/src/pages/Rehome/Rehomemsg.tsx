@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+type Notification = {
+  _id: string;
+  message: string;
+  createdAt?: string;
+};
+
 export default function Rehomemsg() {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Fetch notifications
   useEffect(() => {
@@ -34,45 +40,32 @@ export default function Rehomemsg() {
       <div className="w-full bg-white shadow-sm">
         <div className="max-w-5xl mx-auto py-6">
           <div className="flex items-center justify-between">
-
             {/* Step 1 */}
             <Link to="/rehome" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">
-                1
-              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">1</div>
               <span className="text-sm mt-2">Start</span>
             </Link>
-
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 2 */}
             <Link to="/rehome/dashboard" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">
-                2
-              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">2</div>
               <span className="text-sm mt-2">Dashboard</span>
             </Link>
-
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
-            {/* Step 3 (ACTIVE) */}
+            {/* Step 3 */}
             <Link to="/rehome/confirm" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-emerald-400  text-white flex items-center justify-center">
-                3
-              </div>
-              <span className="text-sm mt-2">confirm</span>
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">3</div>
+              <span className="text-sm mt-2">Confirm</span>
             </Link>
-
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 4 */}
             <Link to="/rehome/notification" className="flex flex-col items-center flex-1">
-              <div className="h-10 w-10 rounded-full bg-emerald-400  text-white flex items-center justify-center">
-                4
-              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-400 text-white flex items-center justify-center">4</div>
               <span className="text-sm mt-2">Notification</span>
             </Link>
-
           </div>
         </div>
       </div>
@@ -94,14 +87,13 @@ export default function Rehomemsg() {
             >
               <p className="font-medium">{note.message}</p>
               <p className="text-xs text-gray-400 mt-1">
-  {note.createdAt
-    ? new Date(note.createdAt).toLocaleString("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      })
-    : "Date unknown"}
-</p>
-
+                {note.createdAt
+                  ? new Date(note.createdAt).toLocaleString("en-US", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })
+                  : "Date unknown"}
+              </p>
             </div>
           ))}
         </div>

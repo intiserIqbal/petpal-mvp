@@ -1,6 +1,19 @@
 import { useNavigate, Link } from "react-router-dom";
 
-interface HomeInfo {
+// Pet type (optional, in case you want to pass it later)
+export type PetType = {
+  name: string;
+  image?: string;
+  images?: string[];
+  breed?: string;
+  age?: number;
+  gender?: string;
+  weight?: number;
+  description?: string;
+};
+
+// Home info type
+export interface HomeInfo {
   spaceAvailable: string;
   sleepingPlace: string;
   ownOrRent: string;
@@ -8,7 +21,8 @@ interface HomeInfo {
   hasFence: string;
 }
 
-interface Address {
+// Address type
+export interface Address {
   line1: string;
   line2?: string;
   postcode: string;
@@ -17,14 +31,16 @@ interface Address {
   mobile: string;
 }
 
+// Props type
 interface Props {
+  pet?: PetType | null; // optional pet
+  petId?: string | null; // optional string | null
   homeInfo: HomeInfo;
-  setHomeInfo: (info: HomeInfo) => void;
+  setHomeInfo: React.Dispatch<React.SetStateAction<HomeInfo>>;
   address: Address;
-  petId?: string;
 }
 
-export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Props) {
+export default function Adopthome({  petId, homeInfo, setHomeInfo, address }: Props) {
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -32,10 +48,10 @@ export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Pro
   };
 
   const handleSubmit = async () => {
-    // Basic validation
-    const requiredFields = ["spaceAvailable", "sleepingPlace", "ownOrRent"];
+    const requiredFields: (keyof HomeInfo)[] = ["spaceAvailable", "sleepingPlace", "ownOrRent"];
+
     for (const field of requiredFields) {
-      if (!homeInfo[field as keyof HomeInfo]) {
+      if (!homeInfo[field]) {
         alert(`Please fill the required field: ${field}`);
         return;
       }

@@ -1,10 +1,23 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+type Pet = {
+  _id: string;
+  name: string;
+  breed?: string;
+  age?: number;
+  gender?: string;
+  weight?: number;
+  description?: string;
+  image?: string;
+  images?: string[];
+  status?: string;
+};
+
 const SearchPets = () => {
-  const navigate = useNavigate();  // for programmatic navigation
-  const [pets, setPets] = useState([]);
-  const [filtered, setFiltered] = useState([]);
+  const navigate = useNavigate();
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [filtered, setFiltered] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [params] = useSearchParams();
@@ -13,7 +26,7 @@ const SearchPets = () => {
   const fetchPets = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/pets/approved");
-      const data = await res.json();
+      const data: { pets: Pet[] } = await res.json();
       setPets(data.pets);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -57,12 +70,13 @@ const SearchPets = () => {
             className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition duration-300 hover:-translate-y-1 p-4 flex flex-col"
           >
             <img
-  src={Array.isArray(pet.images) && pet.images.length > 0
-        ? pet.images[0]
-        : pet.image || "/placeholder.png"}
-  alt={pet.name}
-  className="w-full h-48 object-cover rounded-lg"
-/>
+              src={Array.isArray(pet.images) && pet.images.length > 0
+                ? pet.images[0]
+                : pet.image || "/placeholder.png"
+              }
+              alt={pet.name}
+              className="w-full h-48 object-cover rounded-lg"
+            />
 
             <div className="p-4 flex flex-col flex-1">
               <h2 className="text-xl font-bold">{pet.name}</h2>
@@ -71,12 +85,11 @@ const SearchPets = () => {
               </p>
 
               <div className="mt-2 text-sm text-gray-700 space-y-1">
-                <p><b>Age:</b> {pet.age} months</p>
-                <p><b>Weight:</b> {pet.weight} kg</p>
+                {pet.age !== undefined && <p><b>Age:</b> {pet.age} months</p>}
+                {pet.weight !== undefined && <p><b>Weight:</b> {pet.weight} kg</p>}
               </div>
 
               <div className="mt-4 flex gap-2">
-                {/* View Details button */}
                 <button
                   onClick={() => navigate(`/pet/${pet._id}`)}
                   className="flex-1 bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition"
@@ -84,14 +97,12 @@ const SearchPets = () => {
                   View Details
                 </button>
 
-                {/* Adopt button */}
-               <button
-  onClick={() => navigate(`/adopt?petId=${pet._id}`)}
-  className="flex-1 bg-green-500 text-white rounded-lg py-2 hover:bg-green-600 transition"
->
-  Adopt
-</button>
-
+                <button
+                  onClick={() => navigate(`/adopt?petId=${pet._id}`)}
+                  className="flex-1 bg-green-500 text-white rounded-lg py-2 hover:bg-green-600 transition"
+                >
+                  Adopt
+                </button>
               </div>
             </div>
           </div>

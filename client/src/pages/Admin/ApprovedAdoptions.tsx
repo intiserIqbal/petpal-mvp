@@ -10,6 +10,8 @@ type AdoptionRequest = {
     name?: string;
     image?: string;
     breed?: string;
+    // If backend might send images array, you can optionally include:
+    // images?: string[];
   } | null;
 };
 
@@ -56,22 +58,22 @@ export default function ApprovedAdoptions() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {requests.map((req) => (
-          <div key={req._id} className=" bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4">
-            
+          <div
+            key={req._id}
+            className="bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4"
+          >
+            {/* Pet Image */}
             <img
-  src={
-    Array.isArray(req.pet?.images) && req.pet.images.length > 0
-      ? req.pet.images[0]
-      : req.pet?.image || "/placeholder.png"
-  }
-  alt={req.pet?.name || "Pet"}
-  className="w-full h-48 object-cover rounded-lg"
-/>
+              src={req.pet?.image || "/placeholder.png"}
+              alt={req.pet?.name || "Pet"}
+              className="w-full h-48 object-cover rounded-lg"
+            />
 
-
+            {/* Pet Info */}
             <h3 className="font-bold text-lg">{req.pet?.name}</h3>
             <p className="text-sm text-gray-700">{req.pet?.breed}</p>
 
+            {/* User Info */}
             <p className="mt-3">
               <strong>Adopted By:</strong> {req.user?.name} ({req.user?.email})
             </p>
