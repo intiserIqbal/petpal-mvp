@@ -46,7 +46,8 @@ export default function Register() {
       setError("");
       setSuccess("");
 
-      const res = await axios.post(`${API_URL}/api/auth/register`, {
+      // Removed unused 'res', await the request directly
+      await axios.post(`${API_URL}/api/auth/register`, {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,

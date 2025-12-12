@@ -1,7 +1,7 @@
+// models/Pet.js
 import mongoose from "mongoose";
 
 const petSchema = new mongoose.Schema({
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // FIXED
   name: String,
   breed: String,
   age: Number,
@@ -9,8 +9,9 @@ const petSchema = new mongoose.Schema({
   weight: Number,
   description: String,
   medical: String,
-  image: String,
-  status: { type: String, default: "pending" }
+  status: { type: String, default: "available" }, // available, adopted
+  images: [String],
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
 export default mongoose.model("Pet", petSchema);

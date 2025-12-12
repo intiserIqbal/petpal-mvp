@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Marquee from "react-fast-marquee";
-import { PawPrint, Heart, Bone } from "lucide-react";
+
 
 export default function Home() {
   const navigate = useNavigate();

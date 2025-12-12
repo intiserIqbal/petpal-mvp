@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { api } from "../../services/api";
-import { uploadLocal } from "../../utils/uploadLocal";
 
 export default function Rehomestart() {
   const navigate = useNavigate();
@@ -20,11 +18,11 @@ export default function Rehomestart() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   useEffect(() => {
     return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
+      if (preview) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
@@ -51,20 +49,23 @@ export default function Rehomestart() {
     }
 
     try {
-      // ✅ Upload image first
-      const uploadedUrl = await uploadLocal(imageFile);
+      const token = localStorage.getItem("token");
+      const data = new FormData();
 
-      // ✅ Submit pet
-      await api.post("/pets", {
-        ...form,
-        age: Number(form.age),
-        weight: Number(form.weight),
-        images: [uploadedUrl],
+      data.append("image", imageFile);
+      Object.entries(form).forEach(([k, v]) => data.append(k, v));
+
+      const res = await fetch(`${API_URL}/api/pets/rehome`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: data,
       });
+
+      if (!res.ok) throw new Error("Failed to submit pet");
 
       alert("Pet submitted for admin review!");
       navigate("/rehome/dashboard");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       alert("Error submitting pet");
     } finally {

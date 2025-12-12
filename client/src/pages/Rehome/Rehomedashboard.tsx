@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
+type Pet = {
+  _id: string;
+  name: string;
+  breed: string;
+  age: number;
+  images?: string[];
+  status: "approved" | "pending" | string;
+};
+
 export default function Rehomedashboard() {
-  const [pets, setPets] = useState([]);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,7 +32,7 @@ export default function Rehomedashboard() {
     fetchPets();
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this pet?")) return;
 
     try {
@@ -61,12 +70,12 @@ export default function Rehomedashboard() {
           <div className="h-1 w-40 bg-slate-100 rounded"></div>
           <NavLink to="/rehome/confirm" className="flex flex-col items-center flex-1">
             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">3</div>
-            <span className="text-sm mt-2">confirm</span>
+            <span className="text-sm mt-2">Confirm</span>
           </NavLink>
           <div className="h-1 w-40 bg-slate-100 rounded"></div>
           <NavLink to="/rehome/notification" className="flex flex-col items-center flex-1">
             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">4</div>
-            <span className="text-sm mt-2">notification</span>
+            <span className="text-sm mt-2">Notification</span>
           </NavLink>
         </div>
       </div>
@@ -85,10 +94,11 @@ export default function Rehomedashboard() {
               className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 p-4 flex flex-col"
             >
               <img
-                src={pet.image || "/placeholder.png"}
+                src={pet.images?.[0] || "/placeholder.png"}
                 alt={pet.name}
                 className="w-full h-48 object-cover rounded-lg"
               />
+
               <div className="p-4 flex flex-col flex-1 justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">{pet.name}</h2>

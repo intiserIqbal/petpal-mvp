@@ -33,7 +33,8 @@ router.post("/submit", protect, async (req, res) => {
 router.get("/pending", protect, isAdmin, async (req, res) => {
   const requests = await AdoptionRequest.find({ status: "pending" })
     .populate("user", "name email")
-    .populate("pet", "name breed image");
+    .populate("pet", "name breed image images");
+
 
   res.json({ requests });
 });
@@ -42,7 +43,8 @@ router.get("/pending", protect, isAdmin, async (req, res) => {
 router.get("/approved", protect, isAdmin, async (req, res) => {
   const requests = await AdoptionRequest.find({ status: "approved" })
     .populate("user", "name email")
-    .populate("pet", "name breed image");
+    .populate("pet", "name breed image images");
+
 
   res.json({ requests });
 });
@@ -51,7 +53,8 @@ router.get("/approved", protect, isAdmin, async (req, res) => {
 router.get("/rejected", protect, isAdmin, async (req, res) => {
   const requests = await AdoptionRequest.find({ status: "rejected" })
     .populate("user", "name email")
-    .populate("pet", "name breed image");
+    .populate("pet", "name breed image images");
+
 
   res.json({ requests });
 });

@@ -1,81 +1,62 @@
 import { useEffect, useState } from "react";
 
-type AdoptionRequest = {
+type Pet = {
   _id: string;
-  user?: {
-    _id: string;
-    name?: string;
-    email?: string;
-  } | null;
-  pet?: {
-    _id: string;
-    name: string;
-    breed?: string;
-    image?: string;
-  } | null;
-  address?: {
-    line1?: string;
-    line2?: string;
-    postcode?: string;
-    town?: string;
-    district?: string;
-    mobile?: string;
-  } | null;
-  homeInfo?: {
-    spaceAvailable?: string;
-    sleepingPlace?: string;
-    ownOrRent?: string;
-    petExperience?: string;
-    hasFence?: string;
-  } | null;
+  name: string;
+  breed?: string;
+  age?: number;
+  gender?: string;
+  weight?: number;
+  description?: string;
+  image?: string;
+  images?: string[];
   status?: string;
-  createdAt?: string;
 };
 
-export default function AdminPendingAdoptions() {
-  const [requests, setRequests] = useState<AdoptionRequest[]>([]);
+export default function AdminPendingPets() {
+  const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  const fetchPending = async () => {
+  // Fetch pending pets
+  const fetchPendingPets = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/api/adoptions/pending`, {
+      const res = await fetch(`${API_URL}/api/pets/pending`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
       const data = await res.json();
-      setRequests(data.requests || []);
+      setPets(data.pets || []);
     } catch (err: any) {
       console.error("Fetch error:", err);
-      setError(err.message || "Failed to fetch");
+      setError(err.message || "Failed to fetch pending pets");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPending();
+    fetchPendingPets();
   }, []);
 
-  const updateStatus = async (id: string, newStatus: "approved" | "rejected") => {
+  // Update pet status
+  const updatePetStatus = async (id: string, action: "approved" | "rejected") => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/api/adoptions/update/${id}`, {
+      const res = await fetch(`${API_URL}/api/pets/update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: action }),
       });
 
       if (!res.ok) {
@@ -83,93 +64,59 @@ export default function AdminPendingAdoptions() {
         throw new Error(data.message || `Status update failed ${res.status}`);
       }
 
-      fetchPending();
-      alert(`Request ${newStatus}`);
+      // Remove the pet from the list after action
+      setPets((prev) => prev.filter((p) => p._id !== id));
+      alert(`Pet ${action}`);
     } catch (err: any) {
       console.error("Update error:", err);
       alert(`Error: ${err.message}`);
     }
   };
 
-  if (loading) return <div className="p-6">Loading pending adoptions...</div>;
+  if (loading) return <div className="p-6">Loading pending pets...</div>;
   if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Pending Adoption Requests</h1>
-      {requests.length === 0 && <p>No pending adoption requests.</p>}
+      <h1 className="text-3xl font-bold mb-6">Pending Pets</h1>
+      {pets.length === 0 && <p>No pending pets.</p>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {requests.map((req) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
+        {pets.map((pet) => (
           <div
-            key={req._id}
-            className="bg-white p-4 shadow rounded-lg flex flex-col"
+            key={pet._id}
+            className="bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4"
           >
-            {/* Pet info */}
-            {req.pet && (
-              <>
-                <img
-                  src={req.pet?.image || "/placeholder.png"}
-                  alt={req.pet?.name || "Pet"}
-                  className="w-full h-44 object-cover rounded-lg mb-3"
-                />
-                <h2 className="text-xl font-semibold">{req.pet?.name}</h2>
-                <p className="text-sm text-gray-600">{req.pet?.breed}</p>
-              </>
+            {/* Pet image */}
+            <img
+              src={
+                Array.isArray(pet.images) && pet.images.length > 0
+                  ? pet.images[0]
+                  : pet.image || "/placeholder.png"
+              }
+              alt={pet.name}
+              className="w-full h-48 object-cover rounded-lg"
+            />
+            <h3 className="text-xl font-semibold mt-2">{pet.name}</h3>
+            {pet.breed && <p className="text-gray-600 text-sm">Breed: {pet.breed}</p>}
+            {pet.age !== undefined && <p className="text-gray-600 text-sm">Age: {pet.age} years</p>}
+            {pet.gender && <p className="text-gray-600 text-sm">Gender: {pet.gender}</p>}
+            {pet.weight !== undefined && (
+              <p className="text-gray-600 text-sm">Weight: {pet.weight} kg</p>
             )}
-
-            {/* Applicant info */}
-            <div className="mt-3 text-sm">
-              <p>
-                
-               <b>Applicant:</b> {req.user?.name || req.user?.email || "Unknown User"}
-
-
-              </p>
-              <p>
-                <b>Mobile:</b> {req.address?.mobile || "N/A"}
-              </p>
-            </div>
-
-            {/* Address */}
-            <div className="mt-2 text-xs text-gray-700 space-y-1">
-              <p>
-                <strong>Address:</strong>
-              </p>
-              <p>
-                {req.address?.line1 || "No address available"}
-                {req.address?.line2 ? `, ${req.address?.line2}` : ""}
-              </p>
-              <p>
-                {req.address?.town || ""}
-                {req.address?.district ? `, ${req.address.district}` : ""}
-                {req.address?.postcode ? `, ${req.address.postcode}` : ""}
-              </p>
-            </div>
-
-            {/* Home info */}
-            <div className="mt-2 text-xs text-gray-700 space-y-1">
-              <p>
-                <strong>Home Info:</strong>
-              </p>
-              <p>Space available: {req.homeInfo?.spaceAvailable || "N/A"}</p>
-              <p>Sleeping place: {req.homeInfo?.sleepingPlace || "N/A"}</p>
-              <p>Own/Rent: {req.homeInfo?.ownOrRent || "N/A"}</p>
-              <p>Experience: {req.homeInfo?.petExperience || "N/A"}</p>
-              <p>Fenced yard: {req.homeInfo?.hasFence || "N/A"}</p>
-            </div>
+            {pet.description && <p className="mt-2 text-sm">{pet.description}</p>}
 
             {/* Action buttons */}
             <div className="mt-4 flex gap-2">
               <button
-                onClick={() => updateStatus(req._id, "approved")}
+                onClick={() => updatePetStatus(pet._id, "approved")}
                 className="flex-1 bg-green-400 text-white p-2 rounded-2xl hover:bg-green-500 transition"
               >
                 Approve
               </button>
               <button
-                onClick={() => updateStatus(req._id, "rejected")}
-                className="flex-1 bg-blue-400 text-white py-2 rounded-2xl hover:bg-blue-500 transition"
+                onClick={() => updatePetStatus(pet._id, "rejected")}
+                className="flex-1 bg-blue-400 text-white p-2 rounded-2xl hover:bg-blue-500 transition"
               >
                 Reject
               </button>

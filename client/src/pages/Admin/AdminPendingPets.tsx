@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
 
+type Pet = {
+  _id: string;
+  name: string;
+  breed?: string;
+  age?: number;
+  gender?: string;
+  weight?: number;
+  description?: string;
+  image?: string;
+  images?: string[];
+  status?: string;
+};
+
 const AdminPendingPets = () => {
-  const [pets, setPets] = useState([]);
+  const [pets, setPets] = useState<Pet[]>([]);
 
   // Fetch pending pets
   const fetchPending = async () => {
@@ -12,7 +25,7 @@ const AdminPendingPets = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = await res.json();
+      const data: { pets: Pet[] } = await res.json();
       setPets(data.pets);
     } catch (error) {
       console.error("Fetch Error:", error);
@@ -20,7 +33,7 @@ const AdminPendingPets = () => {
   };
 
   // Update Status Handler
-  const updatePetStatus = async (id, action) => {
+  const updatePetStatus = async (id: string, action: "approved" | "rejected") => {
     try {
       const token = localStorage.getItem("token");
 
@@ -62,7 +75,11 @@ const AdminPendingPets = () => {
             >
               {/* Image */}
               <img
-                src={pet.image}
+                src={
+                  Array.isArray(pet.images) && pet.images.length > 0
+                    ? pet.images[0]
+                    : pet.image || "/placeholder.png"
+                }
                 alt={pet.name}
                 className="w-full h-48 object-cover rounded-lg"
               />
@@ -71,13 +88,13 @@ const AdminPendingPets = () => {
                 <h3 className="text-xl font-semibold">{pet.name}</h3>
 
                 {/* Details */}
-                <p className="text-gray-600 text-sm">Breed: {pet.breed}</p>
-                <p className="text-gray-600 text-sm">Age: {pet.age} years</p>
-                <p className="text-gray-600 text-sm">Gender: {pet.gender}</p>
-                <p className="text-gray-600 text-sm">Weight: {pet.weight} kg</p>
-                <p className="text-gray-500 text-sm mt-2 line-clamp-3">
-                  {pet.description}
-                </p>
+                {pet.breed && <p className="text-gray-600 text-sm">Breed: {pet.breed}</p>}
+                {pet.age !== undefined && <p className="text-gray-600 text-sm">Age: {pet.age} years</p>}
+                {pet.gender && <p className="text-gray-600 text-sm">Gender: {pet.gender}</p>}
+                {pet.weight !== undefined && <p className="text-gray-600 text-sm">Weight: {pet.weight} kg</p>}
+                {pet.description && (
+                  <p className="text-gray-500 text-sm mt-2 line-clamp-3">{pet.description}</p>
+                )}
 
                 {/* Buttons */}
                 <div className="flex justify-between mt-4">
