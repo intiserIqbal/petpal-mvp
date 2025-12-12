@@ -54,17 +54,20 @@ export default function ApprovedAdoptions() {
 
       {requests.length === 0 && <p>No approved adoptions yet.</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {requests.map((req) => (
-          <div key={req._id} className="p-4 border rounded-lg shadow bg-white">
+          <div key={req._id} className=" bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4">
             
-            {req.pet?.image && (
-              <img
-                src={req.pet.image}
-                alt={req.pet.name}
-                className="w-full h-40 object-cover rounded-lg mb-3"
-              />
-            )}
+            <img
+  src={
+    Array.isArray(req.pet?.images) && req.pet.images.length > 0
+      ? req.pet.images[0]
+      : req.pet?.image || "/placeholder.png"
+  }
+  alt={req.pet?.name || "Pet"}
+  className="w-full h-48 object-cover rounded-lg"
+/>
+
 
             <h3 className="font-bold text-lg">{req.pet?.name}</h3>
             <p className="text-sm text-gray-700">{req.pet?.breed}</p>

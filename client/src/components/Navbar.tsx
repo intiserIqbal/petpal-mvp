@@ -16,15 +16,15 @@ export default function Navbar() {
   const [intent, setIntent] = useState<string | null>(localStorage.getItem("userIntent"));
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [notifCount, setNotifCount] = useState(0);            // Rehome notifications
-  const [adoptNotifCount, setAdoptNotifCount] = useState(0);  // Adoption notifications
+  const [notifCount, setNotifCount] = useState(0);
+  const [adoptNotifCount, setAdoptNotifCount] = useState(0);
 
-  // Sync storage changes
   useEffect(() => {
     const handler = () => {
       setToken(localStorage.getItem("token"));
@@ -36,7 +36,6 @@ export default function Navbar() {
     return () => window.removeEventListener("storage", handler);
   }, []);
 
-  // 🔔 Fetch REHOME notification count
   useEffect(() => {
     if (!token) return;
 
@@ -51,7 +50,6 @@ export default function Navbar() {
       .catch(() => setNotifCount(0));
   }, [token]);
 
-  // 🟣 Fetch ADOPTION notification count
   useEffect(() => {
     if (!token) return;
 
@@ -92,6 +90,7 @@ export default function Navbar() {
     }
 
     setMenuOpen(false);
+    setMobileMenuOpen(false);
 
     if (token) navigate(path);
     else navigate(`/login?redirect=${path}`);
@@ -105,6 +104,7 @@ export default function Navbar() {
     setUser(null);
     setIntent(null);
     setMenuOpen(false);
+    setMobileMenuOpen(false);
     navigate("/login");
   };
 
@@ -138,10 +138,12 @@ export default function Navbar() {
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border rounded-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Logo */}
         <div className="flex items-center gap-2">
           <img src="/petpal.png" className="h-12" alt="PetPal Logo" />
         </div>
 
+        {/* Desktop Nav */}
         <nav className="hidden md:flex gap-8 text-gray-600 dark:text-gray-300 font-medium">
           <NavLink
             to="/"
@@ -171,7 +173,7 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        {/* Search */}
+        {/* Search (Desktop) */}
         <div className="relative hidden md:block mt-5" ref={searchRef}>
           <form onSubmit={handleSearchSubmit}>
             <input
@@ -181,7 +183,6 @@ export default function Navbar() {
               placeholder="Search pets..."
               className="border rounded-full pl-4 pr-10 py-2 w-56 focus:ring-2 focus:ring-blue-400 focus:border-blue-500"
             />
-
             <button
               type="submit"
               className="absolute right-2 mt-5 -translate-y-1/2 text-gray-500 hover:text-blue-500"
@@ -208,35 +209,36 @@ export default function Navbar() {
 
         {/* Right panel */}
         <div className="flex items-center gap-4">
-          
-          {/* 🔔 Rehome Notifications */}
-          <button
-            onClick={() => navigate("/rehome/notification")}
-            className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
-            title="Rehome Notifications"
-          >
-            🔔
-            {notifCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                {notifCount}
-              </span>
-            )}
-          </button>
+          {/* Desktop Notifications */}
+          <div className="hidden md:flex items-center gap-2">
+            <button
+              onClick={() => navigate("/rehome/notification")}
+              className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
+              title="Rehome Notifications"
+            >
+              🔔
+              {notifCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {notifCount}
+                </span>
+              )}
+            </button>
 
-          {/* 🟣 Adoption Notifications */}
-          <button
-            onClick={() => navigate("/adopt/notification")}
-            className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
-            title="Adoption Notifications"
-          >
-            🐾
-            {adoptNotifCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-                {adoptNotifCount}
-              </span>
-            )}
-          </button>
+            <button
+              onClick={() => navigate("/adopt/notification")}
+              className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
+              title="Adoption Notifications"
+            >
+              🐾
+              {adoptNotifCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {adoptNotifCount}
+                </span>
+              )}
+            </button>
+          </div>
 
+          {/* User Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setMenuOpen((prev) => !prev)}
@@ -331,8 +333,187 @@ export default function Navbar() {
               </div>
             )}
           </div>
+
+          {/* Mobile Hamburger */}
+          <button
+            className="md:hidden p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+          >
+            ☰
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden px-4 pb-4 space-y-2 bg-white dark:bg-gray-800 border-t shadow-sm">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              isActive ? "block text-blue-500 font-semibold" : "block hover:text-blue-500"
+            }
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Home
+          </NavLink>
+
+          {intent !== "rehome" && (
+            <button onClick={() => handlePrivateNav("/adopt")} className="block hover:text-blue-500 w-full text-left">
+              Adopt
+            </button>
+          )}
+          {intent !== "adopter" && (
+            <button onClick={() => handlePrivateNav("/rehome")} className="block hover:text-blue-500 w-full text-left">
+              Rehome
+            </button>
+          )}
+
+          <NavLink
+            to="/about"
+            className={({ isActive }) =>
+              isActive ? "block text-blue-500 font-semibold" : "block hover:text-blue-500"
+            }
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            About Us
+          </NavLink>
+
+          {/* Mobile Search */}
+          <div className="relative mt-2" ref={searchRef}>
+            <form onSubmit={handleSearchSubmit}>
+              <input
+                value={search}
+                onChange={(e) => fetchSearchResults(e.target.value)}
+                type="text"
+                placeholder="Search pets..."
+                className="border rounded-full pl-4 pr-10 py-2 w-full focus:ring-2 focus:ring-blue-400 focus:border-blue-500"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 mt-2 text-gray-500 hover:text-blue-500"
+              >
+                🔍
+              </button>
+            </form>
+
+            {searchResults.length > 0 && (
+              <div className="absolute bg-white shadow-md border rounded-lg mt-2 w-full max-h-64 overflow-auto z-50">
+                {searchResults.map((pet) => (
+                  <div
+                    key={pet._id}
+                    className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      navigate(`/pet/${pet._id}`);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <img src={pet.image} className="w-10 h-10 rounded-md object-cover" />
+                    <span>{pet.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Notifications */}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => { navigate("/rehome/notification"); setMobileMenuOpen(false); }}
+              className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
+            >
+              🔔
+              {notifCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {notifCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => { navigate("/adopt/notification"); setMobileMenuOpen(false); }}
+              className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
+            >
+              🐾
+              {adoptNotifCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {adoptNotifCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Mobile User Actions */}
+          <div className="mt-2 border-t pt-2 space-y-1">
+            {token ? (
+              <>
+                {intent === "adopter" ? (
+                  <button
+                    onClick={() => handlePrivateNav("/rehome")}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Rehome a Pet
+                  </button>
+                ) : intent === "rehome" ? (
+                  <button
+                    onClick={() => handlePrivateNav("/adopt")}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Adopt a Pet
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handlePrivateNav("/adopt")}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    >
+                      Adopt
+                    </button>
+                    <button
+                      onClick={() => handlePrivateNav("/rehome")}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    >
+                      Rehome
+                    </button>
+                  </>
+                )}
+
+                {isAdmin && (
+                  <button
+                    onClick={() => handlePrivateNav("/admin")}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    Admin
+                  </button>
+                )}
+
+                <button
+                  onClick={logout}
+                  className="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-600/20"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => { navigate("/login"); setMobileMenuOpen(false); }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => { navigate("/register"); setMobileMenuOpen(false); }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Register
+                </button>
+             
+                         </>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
+

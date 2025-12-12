@@ -12,6 +12,7 @@ type AdoptionRequest = {
     name: string;
     breed?: string;
     image?: string;
+    images?: string[];
   } | null;
   address?: {
     line1?: string;
@@ -48,9 +49,7 @@ export default function AdminPendingAdoptions() {
         },
       });
 
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
       const data = await res.json();
       setRequests(data.requests || []);
@@ -99,21 +98,25 @@ export default function AdminPendingAdoptions() {
       <h1 className="text-3xl font-bold mb-6">Pending Adoption Requests</h1>
       {requests.length === 0 && <p>No pending adoption requests.</p>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
         {requests.map((req) => (
           <div
             key={req._id}
-            className="bg-white p-4 shadow rounded-lg flex flex-col"
+            className="bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4"
           >
             {/* Pet info */}
             {req.pet && (
               <>
                 <img
-                  src={req.pet?.image || "/placeholder.png"}
-                  alt={req.pet?.name || "Pet"}
-                  className="w-full h-44 object-cover rounded-lg mb-3"
+                  src={
+                    Array.isArray(req.pet.images) && req.pet.images.length > 0
+                      ? req.pet.images[0]
+                      : req.pet.image || "/placeholder.png"
+                  }
+                  alt={req.pet.name}
+                  className="w-full h-48 object-cover rounded-lg"
                 />
-                <h2 className="text-xl font-semibold">{req.pet?.name}</h2>
+                <h2 className="text-xl font-semibold mt-2">{req.pet?.name}</h2>
                 <p className="text-sm text-gray-600">{req.pet?.breed}</p>
               </>
             )}
@@ -121,10 +124,7 @@ export default function AdminPendingAdoptions() {
             {/* Applicant info */}
             <div className="mt-3 text-sm">
               <p>
-                
-               <b>Applicant:</b> {req.user?.name || req.user?.email || "Unknown User"}
-
-
+                <b>Applicant:</b> {req.user?.name || req.user?.email || "Unknown User"}
               </p>
               <p>
                 <b>Mobile:</b> {req.address?.mobile || "N/A"}
@@ -138,7 +138,7 @@ export default function AdminPendingAdoptions() {
               </p>
               <p>
                 {req.address?.line1 || "No address available"}
-                {req.address?.line2 ? `, ${req.address?.line2}` : ""}
+                {req.address?.line2 ? `, ${req.address.line2}` : ""}
               </p>
               <p>
                 {req.address?.town || ""}

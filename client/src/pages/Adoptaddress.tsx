@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 
-export default function AdoptAddress({ address, setAddress }) {
+export default function AdoptAddress({ petId, address, setAddress }) {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -13,15 +13,12 @@ export default function AdoptAddress({ address, setAddress }) {
       <div className="w-full bg-white shadow-sm">
         <div className="max-w-5xl mx-auto py-6">
           <div className="flex items-center justify-between">
-
-            {/* Step 1 */}
             <NavLink to="/adopt" className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
                 1
               </div>
               <span className="text-sm mt-2">Start</span>
             </NavLink>
-
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             {/* Step 2 - Current Page */}
@@ -33,9 +30,7 @@ export default function AdoptAddress({ address, setAddress }) {
             </div>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
-
-            {/* Step 3 */}
-            <NavLink to="/adopt/home-info" className="flex flex-col items-center flex-1">
+            <NavLink to={`/adopt/home-info?petId=${petId}`} className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                 3
               </div>
@@ -43,21 +38,18 @@ export default function AdoptAddress({ address, setAddress }) {
             </NavLink>
 
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
-
-            {/* Step 4 */}
-            <NavLink to="/adopt/confirm" className="flex flex-col items-center flex-1">
+            <NavLink to={`/adopt/confirm?petId=${petId}`} className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                 4
               </div>
               <span className="text-sm mt-2">Confirm</span>
             </NavLink>
- <div className="h-1 w-40 bg-slate-100 rounded"></div>
-<NavLink to="/adopt/notification" className="flex flex-col items-center flex-1">
+
+            <div className="h-1 w-40 bg-slate-100 rounded"></div>
+            <NavLink to="/adopt/notification" className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">5</div>
-              <span className="text-sm mt-2">notification</span>
+              <span className="text-sm mt-2">Notification</span>
             </NavLink>
-
-
           </div>
         </div>
       </div>
@@ -69,7 +61,7 @@ export default function AdoptAddress({ address, setAddress }) {
         </p>
 
         <form className="space-y-6">
-
+          {/* Address fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium">Address Line 1 *</label>
@@ -157,13 +149,12 @@ export default function AdoptAddress({ address, setAddress }) {
 
             <button
               type="button"
-              onClick={() => navigate("/adopt/home-info")}
+              onClick={() => navigate(`/adopt/home-info?petId=${petId}`)}
               className="px-5 py-2 bg-blue-600 text-white rounded"
             >
               Continue →
             </button>
           </div>
-
         </form>
       </section>
     </div>

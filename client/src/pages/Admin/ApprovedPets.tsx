@@ -8,13 +8,17 @@ export default function ApprovedPets() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    axios
-      .get(`${API_URL}/api/pets/approved`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setPets(res.data.pets))
-      .catch(() => console.log("Error"));
-  }, []);
+  axios
+    .get(`${API_URL}/api/pets/approved`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((res) => {
+      console.log(res.data.pets);
+      setPets(res.data.pets);
+    })
+    .catch((err) => console.log(err));
+}, []);
+
 
   return (
     <div className="p-6">
@@ -30,12 +34,14 @@ export default function ApprovedPets() {
         key={pet._id}
         className="bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4"
       >
-        {/* Image */}
         <img
-          src={pet.image}
-          alt={pet.name}
-          className="w-full h-48 object-cover rounded-lg"
-        />
+  src={Array.isArray(pet.images) && pet.images.length > 0
+        ? pet.images[0]
+        : pet.image || "/placeholder.png"}
+  alt={pet.name}
+  className="w-full h-48 object-cover rounded-lg"
+/>
+
 
         {/* Card Body */}
         <div className="p-4">

@@ -27,15 +27,22 @@ interface Props {
 export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Props) {
   const navigate = useNavigate();
 
-  // Handle form field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setHomeInfo({ ...homeInfo, [e.target.name]: e.target.value });
   };
 
-  // Submit adoption request
   const handleSubmit = async () => {
-    if (!address || !homeInfo) {
-      alert("Please complete all required fields.");
+    // Basic validation
+    const requiredFields = ["spaceAvailable", "sleepingPlace", "ownOrRent"];
+    for (const field of requiredFields) {
+      if (!homeInfo[field as keyof HomeInfo]) {
+        alert(`Please fill the required field: ${field}`);
+        return;
+      }
+    }
+
+    if (!petId) {
+      alert("Pet not selected.");
       return;
     }
 
@@ -58,7 +65,7 @@ export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Pro
       }
 
       alert("Adoption request submitted successfully!");
-      navigate("/adopt/confirm");
+      navigate(`/adopt/confirm?petId=${petId}`);
     } catch (err: any) {
       console.error("Submission error:", err);
       alert(`Error submitting request: ${err.message}`);
@@ -71,42 +78,33 @@ export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Pro
       <div className="w-full bg-white shadow-sm">
         <div className="max-w-5xl mx-auto py-6">
           <div className="flex items-center justify-between">
-            {/* Step 1 */}
-            <Link to="/adopt" className="flex flex-col items-center flex-1">
+            <Link to={`/adopt?petId=${petId}`} className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">1</div>
               <span className="text-sm mt-2">Start</span>
             </Link>
-
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
-            {/* Step 2 */}
-            <Link to="/adopt/address" className="flex flex-col items-center flex-1">
+            <Link to={`/adopt/address?petId=${petId}`} className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">2</div>
               <span className="text-sm mt-2">Address</span>
             </Link>
-
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
-            {/* Step 3 - Current */}
             <div className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center">3</div>
               <span className="text-sm mt-2">Home</span>
             </div>
-
             <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
-            {/* Step 4 */}
-            <Link to="/adopt/confirm" className="flex flex-col items-center flex-1">
+            <Link to={`/adopt/confirm?petId=${petId}`} className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-gray-300 text-white flex items-center justify-center">4</div>
               <span className="text-sm mt-2">Confirm</span>
             </Link>
-
-<div className="h-1 w-40 bg-slate-100 rounded"></div>
-
+            <div className="h-1 w-40 bg-slate-100 rounded"></div>
 
             <Link to="/adopt/notification" className="flex flex-col items-center flex-1">
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">5</div>
-              <span className="text-sm mt-2">notification</span>
+              <span className="text-sm mt-2">Notification</span>
             </Link>
           </div>
         </div>
@@ -119,7 +117,6 @@ export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Pro
         </p>
 
         <form className="space-y-6">
-
           {/* Space available */}
           <div>
             <label className="block font-medium mb-1">Do you have enough space for a pet? *</label>
@@ -198,10 +195,7 @@ export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Pro
 
           {/* Buttons */}
           <div className="flex justify-between mt-6">
-            <Link
-              to="/adopt/address"
-              className="px-5 py-2 border rounded text-gray-600"
-            >
+            <Link to={`/adopt/address?petId=${petId}`} className="px-5 py-2 border rounded text-gray-600">
               ← Back
             </Link>
 
@@ -213,7 +207,6 @@ export default function Adopthome({ homeInfo, setHomeInfo, address, petId }: Pro
               Submit →
             </button>
           </div>
-
         </form>
       </section>
     </>

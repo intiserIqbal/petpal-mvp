@@ -9,6 +9,7 @@ type AdoptionRequest = {
   pet?: {
     name?: string;
     image?: string;
+    images?: string[];
     breed?: string;
   } | null;
 };
@@ -54,23 +55,26 @@ export default function RejectedAdoptions() {
 
       {requests.length === 0 && <p>No rejected requests.</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
         {requests.map((req) => (
           <div key={req._id} className="p-4 border rounded-lg shadow bg-white">
 
-            {req.pet?.image && (
-              <img
-                src={req.pet.image}
-                alt={req.pet.name}
-                className="w-full h-40 object-cover rounded-lg mb-3"
-              />
-            )}
+            <img
+  src={
+    Array.isArray(req.pet?.images) && req.pet.images.length > 0
+      ? req.pet.images[0]
+      : req.pet?.image || "/placeholder.png"
+  }
+  alt={req.pet?.name || "Pet"}
+  className="w-full h-48 object-cover rounded-lg"
+/>
 
-            <h3 className="font-bold text-lg">{req.pet?.name}</h3>
+
+            <h3 className="font-bold text-lg mt-2">{req.pet?.name}</h3>
             <p className="text-sm text-gray-700">{req.pet?.breed}</p>
 
             <p className="mt-3">
-              <strong>User:</strong> {req.user?.name} ({req.user?.email})
+              <strong>User:</strong> {req.user?.name || "Unknown"} ({req.user?.email || "N/A"})
             </p>
 
             <p className="text-red-600 font-semibold mt-3">Status: Rejected</p>

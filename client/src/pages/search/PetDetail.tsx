@@ -12,7 +12,7 @@ export default function PetDetail() {
 
   const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
-  // ✅ Fetch pet
+  // Fetch pet
   useEffect(() => {
     async function fetchPet() {
       try {
@@ -27,7 +27,7 @@ export default function PetDetail() {
     fetchPet();
   }, [id]);
 
-  // ✅ Fetch logged-in user
+  // Fetch logged-in user
   useEffect(() => {
     async function fetchMe() {
       try {
@@ -43,15 +43,19 @@ export default function PetDetail() {
   if (loading) return <div className="p-4 text-center">Loading...</div>;
   if (!pet) return <div className="p-4 text-center">Pet not found</div>;
 
-  // ✅ Fix image URL
-  const firstImage = pet?.images?.[0];
+  // Robust image handling
+  const firstImage =
+    pet.images && pet.images.length > 0
+      ? pet.images[0]
+      : pet.image || null;
+
   const imageSrc = firstImage
     ? firstImage.startsWith("http")
       ? firstImage
-      : `${apiBase}${firstImage}`
+      : `${apiBase}/${firstImage.replace(/^\/+/, "")}` // remove leading slashes
     : "/placeholder.jpg";
 
-  // ✅ Delete pet
+  // Delete pet
   async function handleDelete() {
     if (!confirm("Are you sure?")) return;
 
@@ -85,7 +89,7 @@ export default function PetDetail() {
         <p><strong>Status:</strong> {pet.status}</p>
       </div>
 
-      {/* ✅ Owner-only controls */}
+      {/* Owner-only controls */}
       {currentUserId && pet.owner?._id === currentUserId && (
         <div className="flex gap-4 mt-4">
           <button
@@ -106,8 +110,8 @@ export default function PetDetail() {
 
       <div className="flex justify-center md:justify-start">
         <Link
-          to="/adopt"
-          className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+          to={`/adopt?petId=${pet._id}`}
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
         >
           Adopt Now
         </Link>

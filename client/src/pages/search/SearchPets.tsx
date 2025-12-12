@@ -57,9 +57,13 @@ const SearchPets = () => {
             className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition duration-300 hover:-translate-y-1 p-4 flex flex-col"
           >
             <img
-              src={pet.image}
-              className="w-full h-48 object-cover rounded-t-xl"
-            />
+  src={Array.isArray(pet.images) && pet.images.length > 0
+        ? pet.images[0]
+        : pet.image || "/placeholder.png"}
+  alt={pet.name}
+  className="w-full h-48 object-cover rounded-lg"
+/>
+
             <div className="p-4 flex flex-col flex-1">
               <h2 className="text-xl font-bold">{pet.name}</h2>
               <p className="text-gray-500 text-sm">
@@ -81,12 +85,13 @@ const SearchPets = () => {
                 </button>
 
                 {/* Adopt button */}
-                <button
-                  onClick={() => navigate("/adopt")}
-                  className="flex-1 bg-green-500 text-white rounded-lg py-2 hover:bg-green-600 transition"
-                >
-                  Adopt
-                </button>
+               <button
+  onClick={() => navigate(`/adopt?petId=${pet._id}`)}
+  className="flex-1 bg-green-500 text-white rounded-lg py-2 hover:bg-green-600 transition"
+>
+  Adopt
+</button>
+
               </div>
             </div>
           </div>

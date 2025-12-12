@@ -85,10 +85,12 @@ export default function Rehomedashboard() {
               className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 p-4 flex flex-col"
             >
               <img
-                src={pet.image || "/placeholder.png"}
-                alt={pet.name}
-                className="w-full h-48 object-cover rounded-lg"
-              />
+  src={pet.images?.[0] || "/placeholder.png"}
+  alt={pet.name}
+  className="w-full h-48 object-cover rounded-lg"
+/>
+
+
               <div className="p-4 flex flex-col flex-1 justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">{pet.name}</h2>

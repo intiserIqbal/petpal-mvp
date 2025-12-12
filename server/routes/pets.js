@@ -66,7 +66,7 @@ router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => 
       description: sanitize(req.body.description),
       medical: sanitize(req.body.medical),
       status: "pending",
-      image: req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null,
+      images: req.file ? [`http://localhost:5000/uploads/${req.file.filename}`] : [],
     });
 
     await newPet.save();
@@ -75,6 +75,9 @@ router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => 
     res.status(500).json({ message: err.message });
   }
 });
+
+
+   
 
 // GET my pets
 router.get("/mine", verifyToken, async (req, res) => {
@@ -92,10 +95,10 @@ router.delete("/:id", verifyToken, async (req, res) => {
     const pet = await Pet.findOne({ _id: req.params.id, owner: req.userId });
     if (!pet) return res.status(404).json({ message: "Pet not found" });
 
-    if (pet.image) {
-      const filePath = path.join(uploadDir, path.basename(pet.image));
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
+    if (pet.images && pet.images.length > 0) {
+  const filePath = path.join(uploadDir, path.basename(pet.images[0]));
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+}
 
     await Pet.deleteOne({ _id: req.params.id });
     res.json({ message: "Pet deleted successfully" });
@@ -118,23 +121,24 @@ router.get("/pending", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Approve / reject pet
+// Approve / reject / mark adopted
 router.put("/update/:id", verifyToken, isAdmin, async (req, res) => {
-  const { status } = req.body;
-  if (!["approved", "rejected"].includes(status))
+  const { status } = req.body; // can be 'approved', 'rejected', 'adopted'
+
+  if (!["approved", "rejected", "adopted"].includes(status))
     return res.status(400).json({ message: "Invalid status" });
 
   try {
     const pet = await Pet.findById(req.params.id);
     if (!pet) return res.status(404).json({ message: "Pet not found" });
 
-    pet.status = status;
+    pet.status = status; // update status
     await pet.save();
 
-    // ✅ Rehome notification
+    // send notification to owner
     await Notification.create({
       user: pet.owner,
-      message: `Your rehome request for ${pet.name} has been ${status}.`,
+      message: `Your adoption request for ${pet.name} has been ${status}.`,
       type: "rehome",
     });
 
@@ -165,7 +169,11 @@ router.get("/search", async (req, res) => {
   try {
     const pets = await Pet.find({
       status: "approved",
-      $or: [{ name: { $regex: regex } }, { breed: { $regex: regex } }, { category: { $regex: regex } }],
+      $or: [
+        { name: { $regex: regex } },
+        { breed: { $regex: regex } },
+        { category: { $regex: regex } },
+      ],
     });
     res.json({ pets });
   } catch (err) {

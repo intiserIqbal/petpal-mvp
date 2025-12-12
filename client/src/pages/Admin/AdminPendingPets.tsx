@@ -61,11 +61,14 @@ const AdminPendingPets = () => {
               className="bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4"
             >
               {/* Image */}
-              <img
-                src={pet.image}
-                alt={pet.name}
-                className="w-full h-48 object-cover rounded-lg"
-              />
+             <img
+  src={Array.isArray(pet.images) && pet.images.length > 0
+        ? pet.images[0]
+        : pet.image || "/placeholder.png"}
+  alt={pet.name}
+  className="w-full h-48 object-cover rounded-lg"
+/>
+
 
               <div className="p-4">
                 <h3 className="text-xl font-semibold">{pet.name}</h3>
