@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import validate from "../middleware/validate.js";   // ✅ FIXED: default import
 import { z } from "zod";
+import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -91,6 +92,12 @@ router.post("/login", validate(loginSchema), async (req, res) => {
     console.error("LOGIN ERROR →", err);
     res.status(500).json({ success: false, message: err.message || "Login failed" });
   }
+});
+
+// Ensure this route exists — returns current user from protect middleware
+router.get("/me", protect, (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, message: "Not authenticated" });
+  return res.json({ success: true, user: req.user });
 });
 
 export default router;
