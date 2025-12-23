@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 interface User {
@@ -134,6 +134,7 @@ export default function Navbar() {
   };
 
   const isAdmin = user?.role === "admin";
+  const isLoggedIn = !!token;
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border rounded-sm">
@@ -259,6 +260,15 @@ export default function Navbar() {
               <div className="absolute right-0 top-14 bg-white dark:bg-gray-800 border rounded shadow-lg min-w-[180px] p-1 z-50">
                 {token ? (
                   <>
+                    {/* 👇 Add this Profile link at the top of the dropdown */}
+                    <Link
+                      to="/profile"
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+
                     {intent === "adopter" ? (
                       <button
                         onClick={() => handlePrivateNav("/rehome")}
@@ -446,6 +456,15 @@ export default function Navbar() {
           <div className="mt-2 border-t pt-2 space-y-1">
             {token ? (
               <>
+                {/* 👇 Add this Profile link at the top of the dropdown */}
+                <Link
+                  to="/profile"
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Profile
+                </Link>
+
                 {intent === "adopter" ? (
                   <button
                     onClick={() => handlePrivateNav("/rehome")}
