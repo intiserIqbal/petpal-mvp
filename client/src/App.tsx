@@ -34,6 +34,8 @@ import RejectedAdoptions from "./pages/Admin/RejectedAdoptions";
 import SearchPets from "./pages/search/SearchPets";
 import PetDetail from "./pages/search/PetDetail";
 
+// Profile page
+import Profile from "./pages/Profile";
 
 // ✅ Layout component — Navbar + Content + Footer + Chatbot
 function Layout() {
@@ -96,6 +98,9 @@ export default function App() {
           <Route path="admin/adoptions/approved" element={<ApprovedAdoptions />} />
           <Route path="admin/adoptions/rejected" element={<RejectedAdoptions />} />
         </Route>
+
+        {/* Profile Route */}
+        <Route path="/profile" element={<Profile />} />
 
         {/* ✅ 404 fallback */}
         <Route path="*" element={<NotFound />} />
