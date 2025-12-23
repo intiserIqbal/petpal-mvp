@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
-import ReviewList from "../../components/reviews/ReviewList";
 import ReviewForm from "../../components/reviews/ReviewForm";
+import ReviewList from "../../components/reviews/ReviewList";
 
 export default function PetDetails() {
   const { id } = useParams();
@@ -13,6 +13,8 @@ export default function PetDetails() {
   const [error, setError] = useState("");
 
   const [refreshReviews, setRefreshReviews] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [average, setAverage] = useState(0);
 
   // Fetch pet data
   useEffect(() => {
@@ -28,6 +30,13 @@ export default function PetDetails() {
     };
 
     fetchPet();
+  }, [id]);
+
+  // Fetch reviews data
+  useEffect(() => {
+    api.get(`/reviews/pet/${id}`).then((res) => setReviews(res.data.reviews));
+    // Optional: If you add an average endpoint
+    // api.get(`/reviews/pet/${petId}/average`).then(res => setAverage(res.data.average));
   }, [id]);
 
   const handleDelete = async () => {

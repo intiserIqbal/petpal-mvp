@@ -21,10 +21,46 @@ const GLOBAL_DAILY_TOKENS = Number(process.env.CHAT_GLOBAL_DAILY_TOKENS ?? 50000
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const monthKey = () => new Date().toISOString().slice(0, 7); // YYYY-MM
 
+function isGreeting(text) {
+  if (!text || typeof text !== "string") return false;
+  const greetings = ["hello", "hi", "hey", "greetings", "good morning", "good afternoon", "good evening"];
+  const lower = text.toLowerCase();
+  return greetings.some(g => lower.includes(g));
+}
+
+function isPetRelated(text) {
+  if (!text || typeof text !== "string") return false;
+  const keywords = [
+    "pet","dog","cat","puppy","kitten","adopt","adoption","vet","veterinary","food",
+    "feed","groom","breed","vaccin","vaccination","medical","symptom","health",
+    "training","behavior","leash","collar","spay","neuter","age","weight","flea","tick",
+    "medicine","ill","injur","sick","allerg","behavioral","diet","nutrition"
+  ];
+  const lower = text.toLowerCase();
+  return keywords.some(k => lower.includes(k));
+}
+
 router.post("/", protect, async (req, res) => {
   try {
     const userId = req.user?._id?.toString();
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const { text, petId } = req.body;
+    if (!text || typeof text !== "string" || !text.trim()) return res.status(400).json({ message: "Query text required" });
+
+    // 1) Greeting: reply with a short, friendly message
+    if (isGreeting(text)) {
+      return res.json({
+        answer: "Hello! 👋 I'm PetPal Assistant. Ask me anything about pet care!"
+      });
+    }
+
+    // 2) Non-pet queries: reply with a polite redirect
+    if (!isPetRelated(text)) {
+      return res.json({
+        answer: "I'm here to help with pet care questions. For other topics, please search the internet."
+      });
+    }
 
     // per-minute limiter
     const now = Date.now();
@@ -34,9 +70,6 @@ router.post("/", protect, async (req, res) => {
     if (state.count >= MINUTE_LIMIT) return res.status(429).json({ message: "Rate limit exceeded (per-minute)." });
     state.count += 1;
     rateMap.set(userId, state);
-
-    const { text, petId } = req.body;
-    if (!text || typeof text !== "string" || !text.trim()) return res.status(400).json({ message: "Query text required" });
 
     const date = todayKey();
     // persistent usage doc for user/day

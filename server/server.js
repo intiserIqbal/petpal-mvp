@@ -17,6 +17,7 @@ import adoptionRoutes from "./routes/adoptions.js";
 
 import adminRoutes from "./routes/admin.js";
 import chatbotRoutes from "./routes/chatbot.js";
+import reviewRoutes from "./routes/reviews.js";
 
 // ---------------------------
 // Load environment variables
@@ -98,6 +99,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/adoptions", adoptionRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 
 // Health check
