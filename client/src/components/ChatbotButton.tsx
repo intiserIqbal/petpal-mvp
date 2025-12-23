@@ -70,12 +70,17 @@ function ChatWidget({ onClose, onRequireLogin }: { onClose: () => void; onRequir
       const res = await api.post("/chatbot", { text: t });
       const answer = res.data?.answer ?? "No answer returned.";
       setMsgs((m) => [...m, { from: "bot", text: answer }]);
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.answer ||
-        err?.message ||
-        "Service error. Please try again later.";
+    } catch (err: unknown) {
+      let msg = "Service error. Please try again later.";
+      if (err && typeof err === "object") {
+        if ("message" in err && typeof (err as any).message === "string") {
+          msg = (err as any).message;
+        } else if ("response" in err && typeof (err as any).response?.data?.message === "string") {
+          msg = (err as any).response.data.message;
+        } else if ("response" in err && typeof (err as any).response?.data?.answer === "string") {
+          msg = (err as any).response.data.answer;
+        }
+      }
       setMsgs((m) => [...m, { from: "bot", text: `Error: ${msg}` }]);
     } finally {
       setLoading(false);
