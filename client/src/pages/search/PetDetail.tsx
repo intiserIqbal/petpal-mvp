@@ -74,9 +74,20 @@ export default function PetDetail() {
       <h1 className="text-xl md:text-2xl font-bold">{pet.name}</h1>
 
       <img
-        src={imageSrc}
+        src={
+          Array.isArray(pet.images) && pet.images.find((img: string) => img && img.trim())
+            ? pet.images.find((img: string) => img && img.trim())
+            : pet.image || "/pet-fallback.png"
+        }
         alt={pet.name}
-        className="w-full h-56 sm:h-72 md:h-96 object-cover rounded-lg"
+        className="w-48 h-48 mx-auto object-cover rounded-lg"
+        style={{ maxWidth: "192px", maxHeight: "192px" }}
+        onError={e => {
+          const target = e.currentTarget;
+          if (!target.src.endsWith("/pet-fallback.png")) {
+            target.src = "/pet-fallback.png";
+          }
+        }}
       />
 
       <div className="space-y-2 text-sm md:text-base">
@@ -110,7 +121,7 @@ export default function PetDetail() {
 
       <div className="flex justify-center md:justify-start">
         <Link
-          to={`/adopt?petId=${pet._id}`}
+          to={`/adopt/address?petId=${pet._id}`}
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
         >
           Adopt Now

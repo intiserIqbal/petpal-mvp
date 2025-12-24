@@ -9,9 +9,8 @@ type AdoptionRequest = {
   pet?: {
     name?: string;
     image?: string;
+    images?: string[]; // <-- add this line
     breed?: string;
-    // If backend might send images array, you can optionally include:
-    // images?: string[];
   } | null;
 };
 
@@ -64,9 +63,19 @@ export default function ApprovedAdoptions() {
           >
             {/* Pet Image */}
             <img
-              src={req.pet?.image || "/placeholder.png"}
+              src={
+                Array.isArray(req.pet?.images) && req.pet.images.length > 0
+                  ? req.pet.images[0]
+                  : req.pet?.image || "/pet-fallback.png"
+              }
               alt={req.pet?.name || "Pet"}
               className="w-full h-48 object-cover rounded-lg"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.endsWith("/pet-fallback.png")) {
+                  target.src = "/pet-fallback.png";
+                }
+              }}
             />
 
             {/* Pet Info */}
