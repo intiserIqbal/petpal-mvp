@@ -79,7 +79,7 @@ export default function Wishlist() {
               {/* Heart toggle */}
               <button
                 onClick={() => toggleWishlist(pet)}
-                className="absolute top-3 right-3 text-2xl transition-transform hover:scale-110"
+                className="absolute top-3 right-0 text-2xl transition-transform hover:scale-110"
               >
                 <span className="text-red-500">❤️</span>
               </button>
