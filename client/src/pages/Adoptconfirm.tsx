@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { PetType, AddressType, HomeInfoType } from "./AdoptForm";
 
 interface AdoptConfirmProps {
@@ -15,6 +15,7 @@ export default function AdoptConfirm({ pet, address, homeInfo }: AdoptConfirmPro
   void homeInfo;
 
   const [showModal, setShowModal] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowModal(false), 2000);
@@ -111,12 +112,12 @@ export default function AdoptConfirm({ pet, address, homeInfo }: AdoptConfirmPro
             <img src="/pic.png" className="h-40" alt="Pet Illustration" />
           </div>
 
-          <Link
-            to="/"
+          <button
             className="mt-8 inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm"
+            onClick={() => navigate("/profile")}
           >
             Go To My Profile
-          </Link>
+          </button>
         </section>
       )}
     </>

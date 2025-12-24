@@ -3,6 +3,7 @@ import { protect } from "../middleware/auth.js";
 import Pet from "../models/Pet.js";
 import AdoptionRequest from "../models/AdoptionRequest.js";
 import ChatUsage from "../models/ChatUsage.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ const router = express.Router();
 router.get("/profile", protect, async (req, res) => {
   try {
     const userId = req.user._id;
+    const userInfo = await User.findById(userId).select("name email avatar");
 
     // Get user's pets
     const pets = await Pet.find({ owner: userId });
@@ -22,6 +24,7 @@ router.get("/profile", protect, async (req, res) => {
     const chatUsage = await ChatUsage.findOne({ user: userId, date: today });
 
     res.json({
+      user: userInfo,
       pets,
       adoptions,
       chatUsage: chatUsage
@@ -30,6 +33,22 @@ router.get("/profile", protect, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Failed to load profile." });
+  }
+});
+
+// PUT /api/user/profile
+router.put("/profile", protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { name, email, avatar } = req.body;
+    const updated = await User.findByIdAndUpdate(
+      userId,
+      { name, email, avatar },
+      { new: true, runValidators: true, fields: "name email avatar" }
+    );
+    res.json({ user: updated });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to update profile." });
   }
 });
 

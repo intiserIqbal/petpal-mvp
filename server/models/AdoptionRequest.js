@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const adoptionSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  pet: { type: mongoose.Schema.Types.ObjectId, ref: "Pet" },  // if you choose to track which pet
+  pet: { type: mongoose.Schema.Types.ObjectId, ref: "Pet", required: true },  // if you choose to track which pet
   address: {
     line1: String,
     line2: String,

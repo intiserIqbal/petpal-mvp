@@ -1,5 +1,6 @@
 import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { useNotification } from "../context/NotificationContext";
 
 interface User {
   name: string;
@@ -8,6 +9,7 @@ interface User {
 }
 
 export default function Navbar() {
+  const { adoptNotifCount } = useNotification();
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [user, setUser] = useState<User | null>(
@@ -23,7 +25,6 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [notifCount, setNotifCount] = useState(0);
-  const [adoptNotifCount, setAdoptNotifCount] = useState(0);
 
   useEffect(() => {
     const handler = () => {
@@ -48,20 +49,6 @@ export default function Navbar() {
         setNotifCount(unread);
       })
       .catch(() => setNotifCount(0));
-  }, [token]);
-
-  useEffect(() => {
-    if (!token) return;
-
-    fetch("http://localhost:5000/api/adoptions/notifications", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const unread = data.notifications?.filter((n: any) => !n.read).length || 0;
-        setAdoptNotifCount(unread);
-      })
-      .catch(() => setAdoptNotifCount(0));
   }, [token]);
 
   useEffect(() => {
@@ -226,7 +213,7 @@ export default function Navbar() {
             </button>
 
             <button
-              onClick={() => navigate("/adopt/notification")}
+              onClick={() => { navigate("/profile"); setMobileMenuOpen(false); }}
               className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
               title="Adoption Notifications"
             >
@@ -440,7 +427,7 @@ export default function Navbar() {
             </button>
 
             <button
-              onClick={() => { navigate("/adopt/notification"); setMobileMenuOpen(false); }}
+              onClick={() => { navigate("/profile"); setMobileMenuOpen(false); }}
               className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
             >
               🐾

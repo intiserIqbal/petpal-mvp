@@ -72,7 +72,7 @@ export default function Adopthome({  petId, homeInfo, setHomeInfo, address }: Pr
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ address, homeInfo, petId }),
+        body: JSON.stringify({ address, homeInfo, pet: petId }),
       });
 
       if (!res.ok) {

@@ -77,8 +77,6 @@ router.post("/rehome", verifyToken, upload.single("image"), async (req, res) => 
 });
 
 
-   
-
 // GET my pets
 router.get("/mine", verifyToken, async (req, res) => {
   try {
@@ -206,6 +204,19 @@ router.get("/:id", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+router.get("/", async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const [pets, total] = await Promise.all([
+    Pet.find().skip(skip).limit(limit),
+    Pet.countDocuments()
+  ]);
+
+  res.json({ pets, total });
 });
 
 export default router;
