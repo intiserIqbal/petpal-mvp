@@ -20,8 +20,19 @@ const SearchPets = () => {
   const [filtered, setFiltered] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+
   const [params] = useSearchParams();
   const query = params.get("query")?.toLowerCase() || "";
+
+  // Load wishlist from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("wishlist");
+    if (stored) {
+      const wishlistIds = JSON.parse(stored).map((p: Pet) => p._id);
+      setWishlist(new Set(wishlistIds));
+    }
+  }, []);
 
   const fetchPets = async () => {
     try {
@@ -51,6 +62,35 @@ const SearchPets = () => {
     }
   }, [query, pets]);
 
+  const toggleWishlist = (pet: Pet) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to add pets to your wishlist.");
+      navigate("/login");
+      return;
+    }
+
+    setWishlist((prev) => {
+      const newSet = new Set(prev);
+      let wishlistArray: Pet[] = localStorage.getItem("wishlist")
+        ? JSON.parse(localStorage.getItem("wishlist")!)
+        : [];
+
+      if (newSet.has(pet._id)) {
+        newSet.delete(pet._id);
+        wishlistArray = wishlistArray.filter((p) => p._id !== pet._id);
+      } else {
+        if (!wishlistArray.find((p) => p._id === pet._id)) {
+          wishlistArray.push(pet);
+        }
+        newSet.add(pet._id);
+      }
+
+      localStorage.setItem("wishlist", JSON.stringify(wishlistArray));
+      return newSet;
+    });
+  };
+
   if (loading) return <div className="p-6 text-lg">Loading pets...</div>;
 
   return (
@@ -67,8 +107,21 @@ const SearchPets = () => {
         {filtered.map((pet) => (
           <div
             key={pet._id}
-            className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition duration-300 hover:-translate-y-1 p-4 flex flex-col"
+            className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition duration-300 hover:-translate-y-1 p-4 flex flex-col relative"
           >
+            {/* Wishlist Button */}
+            <button
+              onClick={() => toggleWishlist(pet)}
+              className="absolute top-3 right-3 text-2xl z-10 hover:scale-110 transition-transform"
+              aria-label="Wishlist"
+            >
+              {wishlist.has(pet._id) ? (
+                <span className="text-red-500">❤️</span>
+              ) : (
+                <span className="text-blue-500">💙</span>
+              )}
+            </button>
+
             <img
               src={Array.isArray(pet.images) && pet.images.length > 0
                 ? pet.images[0]
