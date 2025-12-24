@@ -2,6 +2,7 @@ import ChatbotButton from "./components/ChatbotButton";
 import { Routes, Route, Outlet, useLocation } from "react-router-dom";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
+import { NotificationProvider } from "./context/NotificationContext";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -15,6 +16,7 @@ import Register from "./pages/Auth/Register";
 
 // Adopt pages
 import AdoptForm from "./pages/AdoptForm";
+import AdoptList from "./pages/AdoptList";
 
 // Rehome pages
 import Rehomestart from "./pages/Rehome/Rehomestart";
@@ -34,6 +36,8 @@ import RejectedAdoptions from "./pages/Admin/RejectedAdoptions";
 import SearchPets from "./pages/search/SearchPets";
 import PetDetail from "./pages/search/PetDetail";
 
+// Profile page
+import Profile from "./pages/Profile";
 
 // ✅ Layout component — Navbar + Content + Footer + Chatbot
 function Layout() {
@@ -63,43 +67,49 @@ function NotFound() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        
-        {/* ✅ Default Landing Page */}
-        <Route index element={<Home />} />
+    <NotificationProvider>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          
+          {/* ✅ Default Landing Page */}
+          <Route index element={<Home />} />
 
-        {/* ✅ Public Routes */}
-        <Route path="about" element={<AboutUs />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route path="search" element={<SearchPets />} />
-        <Route path="pet/:id" element={<PetDetail />} />
+          {/* ✅ Public Routes */}
+          <Route path="about" element={<AboutUs />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="search" element={<SearchPets />} />
+          <Route path="pet/:id" element={<PetDetail />} />
 
-        {/* ✅ User Protected Routes */}
-        <Route element={<PrivateRoute />}>
-          <Route path="adopt/*" element={<AdoptForm />} />
+          {/* ✅ User Protected Routes */}
+          <Route element={<PrivateRoute />}>
+            <Route path="adopt/*" element={<AdoptForm />} />
 
-          {/* Rehome Pages */}
-          <Route path="rehome" element={<Rehomestart />} />
-          <Route path="rehome/dashboard" element={<Rehomedashboard />} />
-          <Route path="rehome/notification" element={<Rehomemsg />} />
-          <Route path="rehome/confirm" element={<Rehomeconfirm />} />
+            {/* Rehome Pages */}
+            <Route path="rehome" element={<Rehomestart />} />
+            <Route path="rehome/dashboard" element={<Rehomedashboard />} />
+            <Route path="rehome/notification" element={<Rehomemsg />} />
+            <Route path="rehome/confirm" element={<Rehomeconfirm />} />
+          </Route>
+
+          {/* ✅ Admin Routes */}
+          <Route element={<AdminRoute />}>
+            <Route path="admin" element={<AdminDashboard />} />
+            <Route path="admin/approved" element={<ApprovedPets />} />
+            <Route path="admin/rejected" element={<RejectedPets />} />
+            <Route path="admin/adoptions" element={<AdminPendingAdoptions />} />
+            <Route path="admin/adoptions/approved" element={<ApprovedAdoptions />} />
+            <Route path="admin/adoptions/rejected" element={<RejectedAdoptions />} />
+          </Route>
+
+          {/* Profile Route */}
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/adopt" element={<AdoptList />} />
+
+          {/* ✅ 404 fallback */}
+          <Route path="*" element={<NotFound />} />
         </Route>
-
-        {/* ✅ Admin Routes */}
-        <Route element={<AdminRoute />}>
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="admin/approved" element={<ApprovedPets />} />
-          <Route path="admin/rejected" element={<RejectedPets />} />
-          <Route path="admin/adoptions" element={<AdminPendingAdoptions />} />
-          <Route path="admin/adoptions/approved" element={<ApprovedAdoptions />} />
-          <Route path="admin/adoptions/rejected" element={<RejectedAdoptions />} />
-        </Route>
-
-        {/* ✅ 404 fallback */}
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
+      </Routes>
+    </NotificationProvider>
   );
 }

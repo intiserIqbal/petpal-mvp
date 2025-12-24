@@ -20,4 +20,9 @@ export function setAuthToken(token?: string) {
   else delete api.defaults.headers.common.Authorization;
 }
 
+export async function fetchUserProfile() {
+  const res = await api.get("/user/profile");
+  return res.data;
+}
+
 export default api;

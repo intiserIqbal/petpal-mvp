@@ -42,7 +42,7 @@ export default function ReviewList({ petId, refresh }: Props) {
           className="border p-3 rounded bg-gray-50"
         >
           <p className="font-semibold">{review.user?.name || "User"}</p>
-          <p className="mt-1 text-gray-800">{review.text}</p>
+          <p className="mt-1 text-gray-800">{review.comment}</p>
 
           {review.sentiment && (
             <p
@@ -57,6 +57,8 @@ export default function ReviewList({ petId, refresh }: Props) {
               Sentiment: {review.sentiment}
             </p>
           )}
+
+          <p className="text-yellow-600 font-bold">Rating: {review.rating}★</p>
 
           <p className="text-xs text-gray-500 mt-1">
             {new Date(review.createdAt).toLocaleString()}

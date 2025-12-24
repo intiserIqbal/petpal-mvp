@@ -15,6 +15,9 @@ import { connectDB } from "./db/connect.js";
 import adoptionRoutes from "./routes/adoptions.js";
 import adminRoutes from "./routes/admin.js";
 import chatbotRoutes from "./routes/chatbot.js";
+import reviewRoutes from "./routes/reviews.js";
+import userRouter from "./routes/user.js";
+import notificationsRouter from "./routes/notifications.js";
 
 // ---------------------------
 // Load environment variables
@@ -48,8 +51,20 @@ app.use(morgan("dev"));
 // ---------------------------
 // CORS (must be before routes)
 // ---------------------------
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL // This will be "https://petpal12.netlify.app" on Render
+].filter(Boolean);
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -96,6 +111,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/pets", petRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/adoptions", adoptionRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/user", userRouter);
+app.use("/api/notifications", notificationsRouter);
 
 // ---------------------------
 // Health check

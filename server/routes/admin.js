@@ -3,6 +3,8 @@ import express from "express";
 import { protect } from "../middleware/auth.js";
 import ChatUsage from "../models/ChatUsage.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
+import AdoptionRequest from "../models/AdoptionRequest.js";
 
 const router = express.Router();
 
@@ -65,6 +67,33 @@ router.get("/users", protect, isAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch users" });
   }
+});
+
+// Example: Approve/Reject adoption request
+router.post("/adoptions/:id/status", protect, isAdmin, async (req, res) => {
+  const { status } = req.body; // "approved" or "rejected"
+  const adoption = await AdoptionRequest.findById(req.params.id);
+  if (!adoption) return res.status(404).json({ message: "Request not found" });
+
+  adoption.status = status;
+  await adoption.save();
+
+  // Create notification for user
+  await Notification.create({
+    user: adoption.user,
+    message: `Your adoption request for ${adoption.pet} has been ${status}.`,
+    type: "adopt",
+    read: false,
+  });
+
+  res.json({ success: true });
+});
+
+// GET /api/admin/adoptions/pending
+router.get("/adoptions/pending", protect, isAdmin, async (req, res) => {
+  const adoptions = await AdoptionRequest.find({ status: "pending" })
+    .populate("pet user");
+  res.json({ adoptions });
 });
 
 export default router;

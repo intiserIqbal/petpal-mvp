@@ -8,25 +8,23 @@ const router = express.Router();
 
 // submit adoption request
 router.post("/submit", protect, async (req, res) => {
-  const { address, homeInfo, petId } = req.body;
-
-  const newReq = new AdoptionRequest({
-    user: req.user._id,
-    pet: petId,
-    address,
-    homeInfo,
-  });
-
-  await newReq.save();
-
-  // ✅ Adoption notification
-  await Notification.create({
-    user: req.user._id,
-    message: `Your adoption request for pet (${petId}) has been submitted.`,
-    type: "adopt",
-  });
-
-  res.status(201).json(newReq);
+  try {
+    const { pet, address, homeInfo } = req.body;
+    if (!pet) {
+      return res.status(400).json({ message: "Pet ID is required." });
+    }
+    const adoption = new AdoptionRequest({
+      user: req.user._id,
+      pet, // <-- Make sure this is included!
+      address,
+      homeInfo,
+      status: "pending"
+    });
+    await adoption.save();
+    res.status(201).json({ message: "Adoption request submitted!" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to submit adoption request." });
+  }
 });
 
 // pending requests
@@ -100,6 +98,17 @@ router.put("/notifications/read", protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Failed to mark notifications as read" });
   }
+});
+
+// Cancel adoption request (user only)
+router.delete("/cancel/:id", protect, async (req, res) => {
+  const request = await AdoptionRequest.findOne({ _id: req.params.id, user: req.user._id });
+  if (!request) return res.status(404).json({ message: "Request not found" });
+  if (request.status !== "pending") {
+    return res.status(400).json({ message: "Only pending requests can be cancelled" });
+  }
+  await request.deleteOne();
+  res.json({ success: true });
 });
 
 export default router;

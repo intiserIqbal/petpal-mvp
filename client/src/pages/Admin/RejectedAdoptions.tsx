@@ -58,17 +58,21 @@ export default function RejectedAdoptions() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
         {requests.map((req) => (
           <div key={req._id} className="p-4 border rounded-lg shadow bg-white">
-
             <img
-  src={
-    Array.isArray(req.pet?.images) && req.pet.images.length > 0
-      ? req.pet.images[0]
-      : req.pet?.image || "/placeholder.png"
-  }
-  alt={req.pet?.name || "Pet"}
-  className="w-full h-48 object-cover rounded-lg"
-/>
-
+              src={
+                Array.isArray(req.pet?.images) && req.pet.images.length > 0
+                  ? req.pet.images[0]
+                  : req.pet?.image || "/pet-fallback.png"
+              }
+              alt={req.pet?.name || "Pet"}
+              className="w-full h-48 object-cover rounded-lg"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.endsWith("/pet-fallback.png")) {
+                  target.src = "/pet-fallback.png";
+                }
+              }}
+            />
 
             <h3 className="font-bold text-lg mt-2">{req.pet?.name}</h3>
             <p className="text-sm text-gray-700">{req.pet?.breed}</p>

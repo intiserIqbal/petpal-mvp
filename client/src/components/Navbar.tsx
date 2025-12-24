@@ -1,5 +1,6 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { useNotification } from "../context/NotificationContext";
 
 interface User {
   name: string;
@@ -8,6 +9,7 @@ interface User {
 }
 
 export default function Navbar() {
+  const { adoptNotifCount } = useNotification();
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [user, setUser] = useState<User | null>(
@@ -23,7 +25,6 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [notifCount, setNotifCount] = useState(0);
-  const [adoptNotifCount, setAdoptNotifCount] = useState(0);
 
   useEffect(() => {
     const handler = () => {
@@ -48,20 +49,6 @@ export default function Navbar() {
         setNotifCount(unread);
       })
       .catch(() => setNotifCount(0));
-  }, [token]);
-
-  useEffect(() => {
-    if (!token) return;
-
-    fetch("http://localhost:5000/api/adoptions/notifications", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const unread = data.notifications?.filter((n: any) => !n.read).length || 0;
-        setAdoptNotifCount(unread);
-      })
-      .catch(() => setAdoptNotifCount(0));
   }, [token]);
 
   useEffect(() => {
@@ -134,6 +121,7 @@ export default function Navbar() {
   };
 
   const isAdmin = user?.role === "admin";
+  const isLoggedIn = !!token;
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border rounded-sm">
@@ -225,7 +213,7 @@ export default function Navbar() {
             </button>
 
             <button
-              onClick={() => navigate("/adopt/notification")}
+              onClick={() => { navigate("/profile"); setMobileMenuOpen(false); }}
               className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
               title="Adoption Notifications"
             >
@@ -259,6 +247,15 @@ export default function Navbar() {
               <div className="absolute right-0 top-14 bg-white dark:bg-gray-800 border rounded shadow-lg min-w-[180px] p-1 z-50">
                 {token ? (
                   <>
+                    {/* 👇 Add this Profile link at the top of the dropdown */}
+                    <Link
+                      to="/profile"
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+
                     {intent === "adopter" ? (
                       <button
                         onClick={() => handlePrivateNav("/rehome")}
@@ -430,7 +427,7 @@ export default function Navbar() {
             </button>
 
             <button
-              onClick={() => { navigate("/adopt/notification"); setMobileMenuOpen(false); }}
+              onClick={() => { navigate("/profile"); setMobileMenuOpen(false); }}
               className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-gray-700"
             >
               🐾
@@ -446,6 +443,15 @@ export default function Navbar() {
           <div className="mt-2 border-t pt-2 space-y-1">
             {token ? (
               <>
+                {/* 👇 Add this Profile link at the top of the dropdown */}
+                <Link
+                  to="/profile"
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Profile
+                </Link>
+
                 {intent === "adopter" ? (
                   <button
                     onClick={() => handlePrivateNav("/rehome")}

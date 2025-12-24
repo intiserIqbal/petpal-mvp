@@ -76,6 +76,12 @@ export default function AdoptForm() {
     fetchPet();
   }, [petId]);
 
+  // Before submitting, check if petId is valid
+  if (!petId) {
+    alert("Please select a pet to adopt.");
+    return;
+  }
+
   return (
     <Routes>
       <Route index element={<AdoptStart pet={pet} />} />
