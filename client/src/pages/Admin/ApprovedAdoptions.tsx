@@ -8,12 +8,11 @@ type AdoptionRequest = {
   } | null;
   pet?: {
     name?: string;
-    image?: string;
     breed?: string;
-    // If backend might send images array, you can optionally include:
-    // images?: string[];
+    images?: string[]; // 👈 ARRAY (matches your backend)
   } | null;
 };
+
 
 export default function ApprovedAdoptions() {
   const [requests, setRequests] = useState<AdoptionRequest[]>([]);
@@ -64,10 +63,14 @@ export default function ApprovedAdoptions() {
           >
             {/* Pet Image */}
             <img
-              src={req.pet?.image || "/placeholder.png"}
-              alt={req.pet?.name || "Pet"}
-              className="w-full h-48 object-cover rounded-lg"
-            />
+  src={
+    req.pet?.images && req.pet.images.length > 0
+      ? req.pet.images[0]
+      : "/placeholder.png"
+  }
+  alt={req.pet?.name || "Pet"}
+  className="w-full h-48 object-cover rounded-lg"
+/>
 
             {/* Pet Info */}
             <h3 className="font-bold text-lg">{req.pet?.name}</h3>

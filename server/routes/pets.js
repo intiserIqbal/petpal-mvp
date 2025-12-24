@@ -181,6 +181,18 @@ router.get("/search", async (req, res) => {
   }
 });
 
+
+router.get("/rejected", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const pets = await Pet.find({ status: "rejected" });
+    res.json({ pets });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
 // GET rehome notifications
 router.get("/notifications", verifyToken, async (req, res) => {
   const notifications = await Notification.find({ user: req.userId, type: "rehome" }).sort({ createdAt: -1 });
