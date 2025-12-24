@@ -16,29 +16,51 @@ export default function Wishlist() {
   const [wishlistPets, setWishlistPets] = useState<Pet[]>([]);
   const navigate = useNavigate();
 
-  // Load wishlist from localStorage
-  useEffect(() => {
-    const storedWishlist = localStorage.getItem("wishlist");
-    if (storedWishlist) {
-      setWishlistPets(JSON.parse(storedWishlist));
-    } else {
+  // ✅ Helper: get user-specific wishlist key
+  const getWishlistKey = () => {
+    const user = localStorage.getItem("user");
+    if (!user) return null;
+    const userId = JSON.parse(user)._id;
+    return `wishlist_${userId}`;
+  };
+
+  // Load wishlist from localStorage on mount and on storage change
+  const loadWishlist = () => {
+    const key = getWishlistKey();
+    if (!key) {
       setWishlistPets([]);
+      return;
     }
+    const storedWishlist = localStorage.getItem(key);
+    setWishlistPets(storedWishlist ? JSON.parse(storedWishlist) : []);
+  };
+
+  useEffect(() => {
+    loadWishlist();
+    window.addEventListener("storage", loadWishlist);
+    return () => window.removeEventListener("storage", loadWishlist);
   }, []);
 
-  // Toggle wishlist function
+  // Toggle wishlist
   const toggleWishlist = (pet: Pet) => {
-    const stored = localStorage.getItem("wishlist");
-    let wishlist: Pet[] = stored ? JSON.parse(stored) : [];
+    const key = getWishlistKey();
+    if (!key) {
+      alert("You must be logged in to manage your wishlist.");
+      navigate("/login");
+      return;
+    }
 
-    // If pet already in wishlist, remove it
+    let wishlist: Pet[] = localStorage.getItem(key)
+      ? JSON.parse(localStorage.getItem(key)!)
+      : [];
+
     if (wishlist.find((p) => p._id === pet._id)) {
       wishlist = wishlist.filter((p) => p._id !== pet._id);
     } else {
       wishlist.push(pet);
     }
 
-    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+    localStorage.setItem(key, JSON.stringify(wishlist));
     setWishlistPets(wishlist);
   };
 

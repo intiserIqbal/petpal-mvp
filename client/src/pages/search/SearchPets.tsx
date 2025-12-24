@@ -25,9 +25,20 @@ const SearchPets = () => {
   const [params] = useSearchParams();
   const query = params.get("query")?.toLowerCase() || "";
 
-  // Load wishlist from localStorage
+  // ✅ Helper: get user-specific wishlist key
+  const getWishlistKey = () => {
+    const user = localStorage.getItem("user");
+    if (!user) return null;
+    const userId = JSON.parse(user)._id;
+    return `wishlist_${userId}`;
+  };
+
+  // Load wishlist from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("wishlist");
+    const key = getWishlistKey();
+    if (!key) return;
+
+    const stored = localStorage.getItem(key);
     if (stored) {
       const wishlistIds = JSON.parse(stored).map((p: Pet) => p._id);
       setWishlist(new Set(wishlistIds));
@@ -62,6 +73,7 @@ const SearchPets = () => {
     }
   }, [query, pets]);
 
+  // Toggle wishlist
   const toggleWishlist = (pet: Pet) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -70,23 +82,31 @@ const SearchPets = () => {
       return;
     }
 
+    const key = getWishlistKey();
+    if (!key) return;
+
     setWishlist((prev) => {
       const newSet = new Set(prev);
-      let wishlistArray: Pet[] = localStorage.getItem("wishlist")
-        ? JSON.parse(localStorage.getItem("wishlist")!)
+
+      // Load current wishlist from localStorage
+      let wishlistArray: Pet[] = localStorage.getItem(key)
+        ? JSON.parse(localStorage.getItem(key)!)
         : [];
 
       if (newSet.has(pet._id)) {
+        // Remove from wishlist
         newSet.delete(pet._id);
         wishlistArray = wishlistArray.filter((p) => p._id !== pet._id);
       } else {
+        // Add to wishlist only if not already there
         if (!wishlistArray.find((p) => p._id === pet._id)) {
           wishlistArray.push(pet);
         }
         newSet.add(pet._id);
       }
 
-      localStorage.setItem("wishlist", JSON.stringify(wishlistArray));
+      // Save updated wishlist
+      localStorage.setItem(key, JSON.stringify(wishlistArray));
       return newSet;
     });
   };

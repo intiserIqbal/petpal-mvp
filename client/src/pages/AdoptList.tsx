@@ -17,8 +17,7 @@ export default function AdoptList() {
   const [pets, setPets] = useState<Pet[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const limit = 4;
-
+  const limit = 4; // pets per page
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
@@ -30,7 +29,7 @@ export default function AdoptList() {
     return `wishlist_${userId}`;
   };
 
-  // Load wishlist from localStorage on mount
+  // Load wishlist for current user
   useEffect(() => {
     const key = getWishlistKey();
     if (!key) return;
@@ -40,14 +39,21 @@ export default function AdoptList() {
       const wishlistIds = JSON.parse(stored).map((p: Pet) => p._id);
       setWishlist(new Set(wishlistIds));
     }
-  }, []);
+  }, [page]);
 
-  // Fetch pets
-  useEffect(() => {
-    api.get(`/pets?limit=${limit}&page=${page}`).then((res) => {
+  // Fetch pets for current page
+  const fetchPets = async () => {
+    try {
+      const res = await api.get(`/pets?limit=${limit}&page=${page}`);
       setPets(res.data.pets);
       setTotal(res.data.total);
-    });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPets();
   }, [page]);
 
   // Toggle wishlist
@@ -82,6 +88,9 @@ export default function AdoptList() {
       return newSet;
     });
   };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -132,16 +141,8 @@ export default function AdoptList() {
               </p>
 
               <div className="mt-2 text-sm text-gray-700 space-y-1">
-                {pet.age !== undefined && (
-                  <p>
-                    <b>Age:</b> {pet.age} months
-                  </p>
-                )}
-                {pet.weight !== undefined && (
-                  <p>
-                    <b>Weight:</b> {pet.weight} kg
-                  </p>
-                )}
+                {pet.age !== undefined && <p><b>Age:</b> {pet.age} months</p>}
+                {pet.weight !== undefined && <p><b>Weight:</b> {pet.weight} kg</p>}
               </div>
 
               <div className="mt-4 flex gap-2">
@@ -164,8 +165,24 @@ export default function AdoptList() {
         ))}
       </div>
 
-      
-     
+      {/* Pagination */}
+      <div className="flex justify-center mt-6 gap-2">
+        <button
+          className="btn-secondary"
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Prev
+        </button>
+        <span>Page {page} of {totalPages}</span>
+        <button
+          className="btn-secondary"
+          disabled={page >= totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }
