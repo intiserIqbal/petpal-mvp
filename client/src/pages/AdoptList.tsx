@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
@@ -67,39 +67,38 @@ export default function AdoptList() {
      TOGGLE WISHLIST
   ---------------------------------- */
   const toggleWishlist = (pet: Pet) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("You must be logged in to use wishlist");
-    navigate("/login");
-    return;
-  }
-
-  const key = getWishlistKey();
-  if (!key) return;
-
-  setWishlist((prev) => {
-    const newSet = new Set(prev);
-    let wishlistArray: Pet[] = localStorage.getItem(key)
-      ? JSON.parse(localStorage.getItem(key)!)
-      : [];
-
-    if (newSet.has(pet._id)) {
-      // REMOVE
-      newSet.delete(pet._id);
-      wishlistArray = wishlistArray.filter((p) => p._id !== pet._id);
-    } else {
-      // ADD only if not already in wishlist
-      if (!wishlistArray.find((p) => p._id === pet._id)) {
-        wishlistArray.push(pet);
-      }
-      newSet.add(pet._id);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to use wishlist");
+      navigate("/login");
+      return;
     }
 
-    localStorage.setItem(key, JSON.stringify(wishlistArray));
-    return newSet;
-  });
-};
+    const key = getWishlistKey();
+    if (!key) return;
 
+    setWishlist((prev) => {
+      const newSet = new Set(prev);
+      let wishlistArray: Pet[] = localStorage.getItem(key)
+        ? JSON.parse(localStorage.getItem(key)!)
+        : [];
+
+      if (newSet.has(pet._id)) {
+        // REMOVE
+        newSet.delete(pet._id);
+        wishlistArray = wishlistArray.filter((p) => p._id !== pet._id);
+      } else {
+        // ADD only if not already in wishlist
+        if (!wishlistArray.find((p) => p._id === pet._id)) {
+          wishlistArray.push(pet);
+        }
+        newSet.add(pet._id);
+      }
+
+      localStorage.setItem(key, JSON.stringify(wishlistArray));
+      return newSet;
+    });
+  };
 
   const totalPages = Math.ceil(total / limit);
 
@@ -137,11 +136,7 @@ export default function AdoptList() {
 
             {/* Image */}
             <img
-              src={
-                pet.images?.[0] ||
-                pet.image ||
-                "/pet-fallback.png"
-              }
+              src={pet.images?.[0] || pet.image || "/pet-fallback.png"}
               alt={pet.name}
               className="w-48 h-48 mx-auto object-cover rounded-lg"
             />
@@ -166,9 +161,7 @@ export default function AdoptList() {
                 </button>
 
                 <button
-                  onClick={() =>
-                    navigate(`/adopt/address?petId=${pet._id}`)
-                  }
+                  onClick={() => navigate(`/adopt/address?petId=${pet._id}`)}
                   className="flex-1 bg-green-600 text-white py-2 rounded"
                 >
                   Adopt
@@ -185,9 +178,7 @@ export default function AdoptList() {
           disabled={page === 1}
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
           className={`px-4 py-2 rounded ${
-            page === 1
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-blue-500 text-white"
+            page === 1 ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"
           }`}
         >
           Prev
@@ -201,9 +192,7 @@ export default function AdoptList() {
           disabled={page === totalPages || totalPages === 0}
           onClick={() => setPage((p) => p + 1)}
           className={`px-4 py-2 rounded ${
-            page >= totalPages
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-blue-500 text-white"
+            page >= totalPages ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white"
           }`}
         >
           Next

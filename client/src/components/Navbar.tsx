@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { useNotification } from "../context/NotificationContext";
+
 
 interface User {
   name: string;
@@ -9,7 +9,6 @@ interface User {
 }
 
 export default function Navbar() {
-  const { adoptNotifCount } = useNotification();
   const navigate = useNavigate();
 
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));

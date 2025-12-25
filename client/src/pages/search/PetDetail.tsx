@@ -10,8 +10,6 @@ export default function PetDetail() {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
-
   // Fetch pet
   useEffect(() => {
     async function fetchPet() {
@@ -42,18 +40,6 @@ export default function PetDetail() {
 
   if (loading) return <div className="p-4 text-center">Loading...</div>;
   if (!pet) return <div className="p-4 text-center">Pet not found</div>;
-
-  // Robust image handling
-  const firstImage =
-    pet.images && pet.images.length > 0
-      ? pet.images[0]
-      : pet.image || null;
-
-  const imageSrc = firstImage
-    ? firstImage.startsWith("http")
-      ? firstImage
-      : `${apiBase}/${firstImage.replace(/^\/+/, "")}` // remove leading slashes
-    : "/placeholder.jpg";
 
   // Delete pet
   async function handleDelete() {
