@@ -218,17 +218,25 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// GET approved pets with pagination (MUST be last public list route)
 router.get("/", async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const skip = (page - 1) * limit;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+    const skip = (page - 1) * limit;
 
-  const [pets, total] = await Promise.all([
-    Pet.find().skip(skip).limit(limit),
-    Pet.countDocuments()
-  ]);
+    const query = { status: "approved" };
 
-  res.json({ pets, total });
+    const [pets, total] = await Promise.all([
+      Pet.find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      Pet.countDocuments(query),
+    ]);
+
+    res.json({ pets, total });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
-
-export default router;
