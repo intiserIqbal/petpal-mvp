@@ -5,6 +5,7 @@ import axios from "axios";
 type PetType = {
   _id: string;
   name: string;
+  images?: string;
   image?: string;
   breed?: string;
   age?: number;
@@ -38,12 +39,15 @@ export default function RejectedPets() {
             key={pet._id}
             className="bg-white shadow-xl rounded-xl overflow-hidden border hover:scale-[1.02] transition-all p-4"
           >
-            {/* Image */}
             <img
-              src={pet.image || "/placeholder.png"}
-              alt={pet.name}
-              className="w-full h-48 object-cover rounded-lg"
-            />
+                src={
+                  Array.isArray(pet.images) && pet.images.length > 0
+                    ? pet.images[0]
+                    : pet.image || "/placeholder.png"
+                }
+                alt={pet.name}
+                className="w-full h-48 object-cover rounded-lg"
+              />
 
             {/* Card Body */}
             <div className="p-4">
@@ -62,7 +66,7 @@ export default function RejectedPets() {
 
               <div className="mt-4">
                 <span className="bg-green-200 text-green-700 text-xs px-3 py-1 rounded-full font-semibold">
-                  Approved
+                  Rejected
                 </span>
               </div>
             </div>

@@ -2,68 +2,174 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
+interface Pet {
+  _id: string;
+  name: string;
+  images?: string[];
+  image?: string;
+  gender?: string;
+  breed?: string;
+  age?: number;
+  weight?: number;
+}
+
 export default function AdoptList() {
-  const [pets, setPets] = useState<any[]>([]);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 4;
+
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
+  /* ----------------------------------
+     USER-SPECIFIC WISHLIST KEY
+  ---------------------------------- */
+  const getWishlistKey = () => {
+    const user = localStorage.getItem("user");
+    if (!user) return null;
+    const userId = JSON.parse(user)._id;
+    return `wishlist_${userId}`;
+  };
+
+  /* ----------------------------------
+     LOAD WISHLIST (ONCE)
+  ---------------------------------- */
   useEffect(() => {
-    api.get(`/pets?limit=${limit}&page=${page}`).then(res => {
-      setPets(res.data.pets);
-      setTotal(res.data.total);
-    });
+    const key = getWishlistKey();
+    if (!key) return;
+
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const wishlistIds = JSON.parse(stored).map((p: Pet) => p._id);
+      setWishlist(new Set(wishlistIds));
+    }
+  }, []);
+
+  /* ----------------------------------
+     FETCH PETS (PAGINATION)
+  ---------------------------------- */
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        const res = await api.get(`/pets?page=${page}&limit=${limit}`);
+        setPets(res.data.pets);
+        setTotal(res.data.total);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchPets();
   }, [page]);
 
+  /* ----------------------------------
+     TOGGLE WISHLIST
+  ---------------------------------- */
+  const toggleWishlist = (pet: Pet) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to use wishlist");
+    navigate("/login");
+    return;
+  }
+
+  const key = getWishlistKey();
+  if (!key) return;
+
+  setWishlist((prev) => {
+    const newSet = new Set(prev);
+    let wishlistArray: Pet[] = localStorage.getItem(key)
+      ? JSON.parse(localStorage.getItem(key)!)
+      : [];
+
+    if (newSet.has(pet._id)) {
+      // REMOVE
+      newSet.delete(pet._id);
+      wishlistArray = wishlistArray.filter((p) => p._id !== pet._id);
+    } else {
+      // ADD only if not already in wishlist
+      if (!wishlistArray.find((p) => p._id === pet._id)) {
+        wishlistArray.push(pet);
+      }
+      newSet.add(pet._id);
+    }
+
+    localStorage.setItem(key, JSON.stringify(wishlistArray));
+    return newSet;
+  });
+};
+
+
+  const totalPages = Math.ceil(total / limit);
+
+  /* ----------------------------------
+     FIX PAGE OVERFLOW
+  ---------------------------------- */
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) {
+      setPage(totalPages);
+    }
+  }, [totalPages, page]);
+
+  /* ----------------------------------
+     UI
+  ---------------------------------- */
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Available Pets for Adoption</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Available Pets for Adoption
+      </h1>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {pets.map((pet) => (
           <div
             key={pet._id}
-            className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition duration-300 hover:-translate-y-1 p-4 flex flex-col"
+            className="bg-white shadow-md rounded-xl p-4 relative"
           >
+            {/* Wishlist */}
+            <button
+              onClick={() => toggleWishlist(pet)}
+              className="absolute top-3 right-3 text-2xl hover:scale-110 transition"
+            >
+              {wishlist.has(pet._id) ? "❤️" : "💙"}
+            </button>
+
+            {/* Image */}
             <img
               src={
-                Array.isArray(pet.images) && pet.images.find((img: string) => img && img.trim())
-                  ? pet.images.find((img: string) => img && img.trim())
-                  : pet.image || "/pet-fallback.png"
+                pet.images?.[0] ||
+                pet.image ||
+                "/pet-fallback.png"
               }
               alt={pet.name}
               className="w-48 h-48 mx-auto object-cover rounded-lg"
-              style={{ maxWidth: "192px", maxHeight: "192px" }}
-              onError={e => {
-                const target = e.currentTarget;
-                if (!target.src.endsWith("/pet-fallback.png")) {
-                  target.src = "/pet-fallback.png";
-                }
-              }}
             />
 
-            <div className="p-4 flex flex-col flex-1">
+            <div className="mt-4">
               <h2 className="text-xl font-bold">{pet.name}</h2>
-              <p className="text-gray-500 text-sm">
+              <p className="text-sm text-gray-500">
                 {pet.gender} • {pet.breed}
               </p>
 
-              <div className="mt-2 text-sm text-gray-700 space-y-1">
-                {pet.age !== undefined && <p><b>Age:</b> {pet.age} months</p>}
-                {pet.weight !== undefined && <p><b>Weight:</b> {pet.weight} kg</p>}
+              <div className="text-sm mt-2">
+                {pet.age && <p><b>Age:</b> {pet.age} months</p>}
+                {pet.weight && <p><b>Weight:</b> {pet.weight} kg</p>}
               </div>
 
               <div className="mt-4 flex gap-2">
                 <button
                   onClick={() => navigate(`/pet/${pet._id}`)}
-                  className="flex-1 bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition"
+                  className="flex-1 bg-blue-500 text-white py-2 rounded"
                 >
-                  View Details
+                  View
                 </button>
 
                 <button
-                  className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-                  onClick={() => navigate(`/adopt/address?petId=${pet._id}`)}
+                  onClick={() =>
+                    navigate(`/adopt/address?petId=${pet._id}`)
+                  }
+                  className="flex-1 bg-green-600 text-white py-2 rounded"
                 >
                   Adopt
                 </button>
@@ -72,19 +178,36 @@ export default function AdoptList() {
           </div>
         ))}
       </div>
+
       {/* Pagination */}
-      <div className="flex justify-center mt-6 gap-2">
+      <div className="flex justify-center mt-8 gap-4 items-center">
         <button
-          className="btn-secondary"
           disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-        >Prev</button>
-        <span>Page {page}</span>
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          className={`px-4 py-2 rounded ${
+            page === 1
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-500 text-white"
+          }`}
+        >
+          Prev
+        </button>
+
+        <span className="font-medium">
+          Page {page} of {totalPages}
+        </span>
+
         <button
-          className="btn-secondary"
-          disabled={page * limit >= total}
-          onClick={() => setPage(page + 1)}
-        >Next</button>
+          disabled={page === totalPages || totalPages === 0}
+          onClick={() => setPage((p) => p + 1)}
+          className={`px-4 py-2 rounded ${
+            page >= totalPages
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-500 text-white"
+          }`}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

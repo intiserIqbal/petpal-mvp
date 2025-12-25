@@ -39,6 +39,8 @@ import PetDetail from "./pages/search/PetDetail";
 // Profile page
 import Profile from "./pages/Profile";
 
+import Wishlist from "./components/Wishlist";
+
 // ✅ Layout component — Navbar + Content + Footer + Chatbot
 function Layout() {
   const location = useLocation();
@@ -84,6 +86,7 @@ export default function App() {
           {/* ✅ User Protected Routes */}
           <Route element={<PrivateRoute />}>
             <Route path="adopt/*" element={<AdoptForm />} />
+            <Route path="/wishlist" element={<Wishlist />} />
 
             {/* Rehome Pages */}
             <Route path="rehome" element={<Rehomestart />} />
@@ -105,6 +108,8 @@ export default function App() {
           {/* Profile Route */}
           <Route path="/profile" element={<Profile />} />
           <Route path="/adopt" element={<AdoptList />} />
+          
+
 
           {/* ✅ 404 fallback */}
           <Route path="*" element={<NotFound />} />

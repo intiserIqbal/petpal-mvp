@@ -20,8 +20,30 @@ const SearchPets = () => {
   const [filtered, setFiltered] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+
   const [params] = useSearchParams();
   const query = params.get("query")?.toLowerCase() || "";
+
+  // ✅ Helper: get user-specific wishlist key
+  const getWishlistKey = () => {
+    const user = localStorage.getItem("user");
+    if (!user) return null;
+    const userId = JSON.parse(user)._id;
+    return `wishlist_${userId}`;
+  };
+
+  // Load wishlist from localStorage on mount
+  useEffect(() => {
+    const key = getWishlistKey();
+    if (!key) return;
+
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const wishlistIds = JSON.parse(stored).map((p: Pet) => p._id);
+      setWishlist(new Set(wishlistIds));
+    }
+  }, []);
 
   const fetchPets = async () => {
     try {
@@ -51,6 +73,44 @@ const SearchPets = () => {
     }
   }, [query, pets]);
 
+  // Toggle wishlist
+  const toggleWishlist = (pet: Pet) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to add pets to your wishlist.");
+      navigate("/login");
+      return;
+    }
+
+    const key = getWishlistKey();
+    if (!key) return;
+
+    setWishlist((prev) => {
+      const newSet = new Set(prev);
+
+      // Load current wishlist from localStorage
+      let wishlistArray: Pet[] = localStorage.getItem(key)
+        ? JSON.parse(localStorage.getItem(key)!)
+        : [];
+
+      if (newSet.has(pet._id)) {
+        // Remove from wishlist
+        newSet.delete(pet._id);
+        wishlistArray = wishlistArray.filter((p) => p._id !== pet._id);
+      } else {
+        // Add to wishlist only if not already there
+        if (!wishlistArray.find((p) => p._id === pet._id)) {
+          wishlistArray.push(pet);
+        }
+        newSet.add(pet._id);
+      }
+
+      // Save updated wishlist
+      localStorage.setItem(key, JSON.stringify(wishlistArray));
+      return newSet;
+    });
+  };
+
   if (loading) return <div className="p-6 text-lg">Loading pets...</div>;
 
   return (
@@ -67,8 +127,21 @@ const SearchPets = () => {
         {filtered.map((pet) => (
           <div
             key={pet._id}
-            className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition duration-300 hover:-translate-y-1 p-4 flex flex-col"
+            className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl transition duration-300 hover:-translate-y-1 p-4 flex flex-col relative"
           >
+            {/* Wishlist Button */}
+            <button
+              onClick={() => toggleWishlist(pet)}
+              className="absolute top-3 right-3 text-2xl z-10 hover:scale-110 transition-transform"
+              aria-label="Wishlist"
+            >
+              {wishlist.has(pet._id) ? (
+                <span className="text-red-500">❤️</span>
+              ) : (
+                <span className="text-blue-500">💙</span>
+              )}
+            </button>
+
             <img
               src={Array.isArray(pet.images) && pet.images.length > 0
                 ? pet.images[0]

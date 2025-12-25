@@ -14,6 +14,7 @@ type AdoptionRequest = {
   } | null;
 };
 
+
 export default function ApprovedAdoptions() {
   const [requests, setRequests] = useState<AdoptionRequest[]>([]);
   const [loading, setLoading] = useState(true);
